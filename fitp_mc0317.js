@@ -4,6 +4,9 @@ function rand(from, to){
   return Math.floor(Math.random() * (to - from + 1) + from);
 }
 
+
+
+
 class Character{
   constructor(player){
     this.name = player.name;
@@ -22,21 +25,34 @@ class Character{
   get maxAp(){
     return this.dex * 2;
   }
-  attack(target){
-    let damage = this.str * this.weapon.demage * rand(1,2);
-    target.hp -= damage;
-    this.ap -= this.weapon.apCost;
-    if (target.hp <= 0) {
-      target.dead = true;
-    }
-    return damage;
+  get attackRate(){
+    return this.weapon.demage * this.str;
   }
+
+  attack(target){
+  let demage = attack.call(this, target);
+  console.log(`${this.name} hit ${target.name} by ${demage}`);
+  }
+
   lockpick(target){
     if (target.lock.electric){
       console.log('Cannot lockpick electric lock');
-      }
-    else if (this.dex >= 5){
-      if (rand(0, 9) > this.dex) {
+    }
+    else {
+      this.breakAnyLock(target, this.dex)
+    }
+  }
+  hack(target){
+    if (!target.lock.electric){
+      console.log('Cannot hack physical lock');
+    }
+    else {
+      this.breakAnyLock(target, this.int);
+    }
+  }
+  breakAnyLock(target, typeParam){
+    if (typeParam >= 5){
+      if (rand(0,9) < typeParam) {
         target.lock.opened = true;
         this.weapon = target.content;
         console.log('Container opened');
@@ -49,28 +65,27 @@ class Character{
       console.log('Lock is too complicated');
     }
   }
-  hack(target){
-    if (!target.lock.electric){
-      console.log('Cannot hack physical lock');
-    }
-    else if (this.int >= 5){
-      target.lock.opened = true;
-      this.weapon = target.content;
-      console.log('Container opened');
-    }
-    else {
-      console.log('Lock is too complicated');
-    }
-  }
-  tryLuck(){
+}
 
+class Boss{
+  constructor(){
+    this.name = 'RD-' + rand(1000, 9999);
+    this.hp = 100;
+    this.ap = 15;
+    this.attackRate = 10;
+    this.dead = false;
+    this.weapon = {demage: 1, apCost: 3};
+  }
+  attack(target){
+    let demage = attack.call(this, target);
+    console.log(`${this.name} hit ${target.name} by ${demage}`);
   }
 }
 
 class Container{
   constructor(){
     this.lock = new Lock();
-    this.content = new Weapon(2);
+    this.content = new Weapon();
   }
 }
 
@@ -82,42 +97,11 @@ class Lock{
   }
 }
 
-class Boss{
-  constructor(){
-    this.name = 'RD-' + rand(1000, 9999);
-    this.hp = 100;
-    this.ap = 15;
-    this.attackRate = 10;
-    this.dead = false;
-  }
-  attack(player){
-    let damage = this.attackRate * rand(1, 2);
-    player.hp -= damage;
-    this.ap -= 3;
-    if (player.hp <= 0){
-      player.dead = true;
-    }
-    return damage;
-  }
-}
-
 class Weapon{
   constructor(){
     this.demage = rand(4, 5);
     this.apCost = 2;
   }
-}
-
-function fight(side1, side2){
-  while (!side1.dead && !side2.dead){
-    hit(side1, side2);
-    if (side1.dead || side2.dead){
-      break;
-    }
-    hit(side2, side1);
-  }
-  console.log(`Fight is over`);
-  battleDisplay(side1, side2);
 }
 
 function open(player, container){
@@ -128,8 +112,18 @@ function hack(player, container){
   player.hack(container);
 }
 
+function attack(target){
+  let damage = this.attackRate * rand(1, 2);
+  target.hp -= damage;
+  this.ap -= this.weapon.apCost;
+  if (target.hp <= 0){
+    target.dead = true;
+  }
+  return damage;
+}
+
 function hit(side1, side2){
-  console.log(`${side1.name} hit ${side2.name} by ${side1.attack(side2)}`);
+  console.log(`${side1.name} hit ${side2.name} by ${attack(side1, side2)}`);
   if (side2.dead){
     console.log(`${side2.name} is dead`);
   }
@@ -139,8 +133,20 @@ function battleDisplay(player, boss){
   console.log(`${boss.name} HP: ${boss.hp}, ${boss.name} AP: ${boss.ap}, ${player.name} HP: ${player.hp}, ${player.name} AP: ${player.ap}`);
 }
 
+function fight(side1, side2){
+  while (!side1.dead && !side2.dead){
+    side1.attack(side2);
+    if (side1.dead || side2.dead){
+      break;
+    }
+    side2.attack(side1);
+  }
+  console.log(`Fight is over`);
+  battleDisplay(side1, side2);
+}
+
 //-----------------------------
-var player = '{"name": "John Doe", "stats": [5, 5, 5, 5]}';
+var player = '{"name": "John Doe", "stats": [5, 10, 5, 5]}';
 player = JSON.parse(player);
 
 var player1 = new Character(player);
@@ -151,3 +157,6 @@ var container1 = new Container();
 open(player1, container1);
 hack(player1, container1);
 fight(player1, boss1);
+
+player1.attack(boss1);
+boss1.attack(player1);
