@@ -1,22 +1,15 @@
 'use strict';
 
-function rand(from, to){
-  return Math.floor(Math.random() * (to - from + 1) + from);
-}
-
-
-
-
 class Character{
-  constructor(player){
-    this.name = player.name;
-    this.str = player.stats[0];
-    this.dex = player.stats[1];
-    this.int = player.stats[2];
-    this.luc = player.stats[3];
+  constructor(characterStats){
+    this.name = characterStats.name;
+    this.str = characterStats.stats[0];
+    this.dex = characterStats.stats[1];
+    this.int = characterStats.stats[2];
+    this.luc = characterStats.stats[3];
+    this.weapon = characterStats.weapon;
     this.hp = this.maxHp;
     this.ap = this.maxAp;
-    this.weapon = {demage: 1, apCost: 1};
     this.dead = false;
   }
   get maxHp(){
@@ -26,14 +19,19 @@ class Character{
     return this.dex * 2;
   }
   get attackRate(){
-    return this.weapon.demage * this.str;
+    return this.weapon.demage + this.str;
   }
 
   attack(target){
-  let demage = attack.call(this, target);
-  console.log(`${this.name} hit ${target.name} by ${demage}`);
+    let damage = this.attackRate * rand(1, 2);
+    target.hp -= damage;
+    this.ap -= this.weapon.apCost;
+    console.log(`${this.name} hit ${target.name} by ${damage}`);
+    if (target.hp <= 0){
+      target.dead = true;
+      console.log(`${target.name} is dead`);
+    }
   }
-
   lockpick(target){
     if (target.lock.electric){
       console.log('Cannot lockpick electric lock');
@@ -67,20 +65,17 @@ class Character{
   }
 }
 
-class Boss{
-  constructor(){
-    this.name = 'RD-' + rand(1000, 9999);
-    this.hp = 100;
-    this.ap = 15;
-    this.attackRate = 10;
-    this.dead = false;
-    this.weapon = {demage: 1, apCost: 3};
-  }
-  attack(target){
-    let demage = attack.call(this, target);
-    console.log(`${this.name} hit ${target.name} by ${demage}`);
-  }
-}
+// class Player extends Character{
+//
+// }
+//
+// class Enemy extends Character{
+//
+// }
+//
+// class NPC extends Character{
+//
+// }
 
 class Container{
   constructor(){
@@ -99,33 +94,8 @@ class Lock{
 
 class Weapon{
   constructor(){
-    this.demage = rand(4, 5);
-    this.apCost = 2;
-  }
-}
-
-function open(player, container){
-  player.lockpick(container);
-}
-
-function hack(player, container){
-  player.hack(container);
-}
-
-function attack(target){
-  let damage = this.attackRate * rand(1, 2);
-  target.hp -= damage;
-  this.ap -= this.weapon.apCost;
-  if (target.hp <= 0){
-    target.dead = true;
-  }
-  return damage;
-}
-
-function hit(side1, side2){
-  console.log(`${side1.name} hit ${side2.name} by ${attack(side1, side2)}`);
-  if (side2.dead){
-    console.log(`${side2.name} is dead`);
+    this.demage = rand(5, 10);
+    this.apCost = rand(2, 3);
   }
 }
 
@@ -145,18 +115,25 @@ function fight(side1, side2){
   battleDisplay(side1, side2);
 }
 
+function rand(from, to){
+  return Math.floor(Math.random() * (to - from + 1) + from);
+}
+
+function nameGenerator(){
+  return 'RD-' + rand(1000, 9999);
+}
+
 //-----------------------------
-var player = '{"name": "John Doe", "stats": [5, 10, 5, 5]}';
+var player = '{"name": "John Doe", "stats": [5, 5, 5, 5], "weapon": {"demage": 1, "apCost": 1}}';
+var boss = {name: nameGenerator(), stats: [7, 5, 5, 5], weapon: {demage: 2, apCost: 3}};
+
 player = JSON.parse(player);
 
 var player1 = new Character(player);
-var boss1 = new Boss();
-var weapon1 = new Weapon();
+var boss1 = new Character(boss);
 var container1 = new Container();
 
-open(player1, container1);
-hack(player1, container1);
-fight(player1, boss1);
 
-player1.attack(boss1);
-boss1.attack(player1);
+player1.lockpick(container1);
+player1.hack(container1);
+fight(player1, boss1);
