@@ -5,11 +5,10 @@ class Character{
     this.name = characterStats.name;
     this.str = characterStats.stats[0];
     this.dex = characterStats.stats[1];
-    this.int = characterStats.stats[2];
-    this.luc = characterStats.stats[3];
     this.weapon = characterStats.weapon;
     this.hp = this.maxHp;
     this.ap = this.maxAp;
+    this.level = 0;
     this.dead = false;
   }
   get maxHp(){
@@ -21,16 +20,23 @@ class Character{
   get attackRate(){
     return this.weapon.demage + this.str;
   }
-
   attack(target){
     let damage = this.attackRate * rand(1, 2);
     target.hp -= damage;
     this.ap -= this.weapon.apCost;
-    console.log(`${this.name} hit ${target.name} by ${damage}`);
+    console.log(`${this.name} (level ${this.level}) hit ${target.name} (level ${target.level}) by ${damage}`);
     if (target.hp <= 0){
       target.dead = true;
       console.log(`${target.name} is dead`);
     }
+  }
+}
+
+class Player extends Character{
+  constructor(characterStats){
+    super(characterStats);
+    this.int = characterStats.stats[2];
+    this.luc = characterStats.stats[3];
   }
   lockpick(target){
     if (target.lock.electric){
@@ -65,17 +71,14 @@ class Character{
   }
 }
 
-// class Player extends Character{
-//
-// }
-//
-// class Enemy extends Character{
-//
-// }
-//
-// class NPC extends Character{
-//
-// }
+//Класс противника. Использует объект со случайными данными для создания
+class Enemy extends Character{
+  constructor(){
+    let protoStats = new NextEnemyStats();
+    super(protoStats);
+    this.level = protoStats.level;
+  }
+}
 
 class Container{
   constructor(){
@@ -123,16 +126,59 @@ function nameGenerator(){
   return 'RD-' + rand(1000, 9999);
 }
 
+// Функция генерации объекта с данными для создания нового противника
+class NextEnemyStats {
+  constructor(level){
+    this.name = nameGenerator();
+    this.stats = getEnemyStats();
+    this.weapon = {demage: 2, apCost: 3};
+    this.level = this.stats.reduce((sum, current) => {
+      return sum + current;
+    }, 0) - 10;
+  }
+}
+
+//Функция генерации случайного уровня противника, с учётом того, что более высокие уровни должны генерироваться реже
+function getRandomLevel(){
+  let grade, index = rand(0, 9);
+  switch (index){
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      grade = [1, 5];
+      break;
+    case 4:
+    case 5:
+    case 6:
+      grade = [6, 10];
+      break;
+    case 7:
+    case 8:
+      grade = [11, 15];
+      break;
+    case 9:
+      grade = [16, 20];
+  }
+  return rand(...grade);
+}
+
+//Функция, которая распределяет уровни противника по характеристикам
+function getEnemyStats(){
+  let stats = [], levelups = getRandomLevel();
+  stats[0] = 5 + Math.ceil(levelups / 2);
+  stats[1] = 5 + Math.floor(levelups / 2);
+  return stats;
+}
+
 //-----------------------------
 var player = '{"name": "John Doe", "stats": [5, 5, 5, 5], "weapon": {"demage": 1, "apCost": 1}}';
-var boss = {name: nameGenerator(), stats: [7, 5, 5, 5], weapon: {demage: 2, apCost: 3}};
 
 player = JSON.parse(player);
 
-var player1 = new Character(player);
-var boss1 = new Character(boss);
+var player1 = new Player(player);
+var boss1 = new Enemy();
 var container1 = new Container();
-
 
 player1.lockpick(container1);
 player1.hack(container1);
