@@ -45,7 +45,7 @@ class Player extends Character{
     this.int = characterStats.stats[2];
     this.luc = characterStats.stats[3];
   }
-// Метод для взлома физических замков, в зависимости от ловкости
+//Метод для взлома физических замков, в зависимости от ловкости
   lockpick(target){
     if (target.lock.electric){
       console.log('Cannot lockpick electric lock');
@@ -54,7 +54,7 @@ class Player extends Character{
       this.breakAnyLock(target, this.dex)
     }
   }
-// Метод для взлома электронных замков, в зависимости от интеллекта
+//Метод для взлома электронных замков, в зависимости от интеллекта
   hack(target){
     if (!target.lock.electric){
       console.log('Cannot hack physical lock');
@@ -63,7 +63,7 @@ class Player extends Character{
       this.breakAnyLock(target, this.int);
     }
   }
-// Метод для реализации механики взлома замка
+//Метод для реализации механики взлома замка
   breakAnyLock(target, typeParam){
     if (typeParam >= 5){
       if (rand(0,9) < typeParam) {
@@ -79,7 +79,7 @@ class Player extends Character{
       console.log('Lock is too complicated');
     }
   }
-// Метод для восстановления здоровья, в зависимости от интеллекта. Без аргументов лечит себя
+//Метод для восстановления здоровья, в зависимости от интеллекта. Без аргументов лечит себя
   heal(target = this){
     let regenHp = target.maxHp / 10 * this.int;
     if (target.hp + regenHp > target.maxHp){
@@ -130,7 +130,7 @@ class Armor{
   }
 }
 
-// Конструктор генерации объекта с данными для создания нового противника
+//Конструктор генерации объекта с данными для создания нового противника
 class NextEnemyStats {
   constructor(level){
     this.name = nameGenerator();
@@ -176,6 +176,26 @@ function getEnemyStats(){
   return stats;
 }
 
+//Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
+function startNextTurn(character){
+  let index = rand(0, 5);
+  switch (index){
+    case 0:
+    case 1:
+    case 2:
+      fight(character, new Enemy());
+      break;
+    case 3:
+    case 4:
+    case 5:
+      character.lockpick(new Container());
+      character.hack(new Container());
+      break;
+    // case 6:
+    //   character.talk(new NPC());
+  }
+}
+
 function battleDisplay(player, boss){
   console.log(`${boss.name} HP: ${boss.hp}, ${boss.name} AP: ${boss.ap}, ${player.name} HP: ${player.hp}, ${player.name} AP: ${player.ap}`);
 }
@@ -202,16 +222,10 @@ function nameGenerator(){
 
 //-----------------------------
 var player = '{"name": "John Doe", "stats": [5, 5, 5, 5], "weapon": {"demage": 1, "apCost": 1}, "armor": {"defence": 0}}';
-
 player = JSON.parse(player);
-
 var player1 = new Player(player);
-var boss1 = new Enemy();
-var container1 = new Container();
 
-player1.lockpick(container1);
-player1.hack(container1);
-fight(player1, boss1);
+startNextTurn(player1);
 
 if (!player1.dead){
   player1.heal();
