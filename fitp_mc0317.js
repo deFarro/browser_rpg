@@ -16,7 +16,7 @@ class Character{
     return this.str * 10 + 10;
   }
   get maxAp(){
-    return this.dex * 2;
+    return this.dex;
   }
   get attackRate(){
     return this.weapon.demage + this.str;
@@ -31,7 +31,7 @@ class Character{
     }
     target.hp -= damage;
     this.ap -= this.weapon.apCost;
-    console.log(`${this.name} (level ${this.level}) hit ${target.name} (level ${target.level}) by ${damage}`);
+    console.log(`${this.name} (level ${this.level}) hit ${target.name} (level ${target.level}) by ${damage}, ${this.ap} AP left`);
     if (target.hp <= 0){
       target.dead = true;
       console.log(`${target.name} is dead`);
@@ -66,27 +66,31 @@ class Player extends Character{
   }
 //Метод для реализации механики взлома замка
   breakAnyLock(target, typeParam){
-    if (!target.lock.opened){
-      if (typeParam >= 5){
-        if (rand(0,9) < typeParam) {
-          target.lock.opened = true;
-          this.weapon = target.content;
-          console.log('Container opened');
-        }
-        else {
-          console.log('Lockpick failed');
-        }
+    if (typeParam >= 5){
+      if (this.ap < 2){
+        console.log('Not enought AP');
+        return false;
+      }
+      this.ap -= 2;
+      if (rand(0,9) < typeParam) {
+        this.weapon = target.content;
+        console.log('Container opened');
       }
       else {
-        console.log('Lock is too complicated');
+        console.log('Lockpick failed');
       }
     }
     else {
-      console.log('Container is empty');
+      console.log('Lock is too complicated');
     }
   }
-//Метод для восстановления здоровья, в зависимости от интеллекта. Без аргументов лечит себя
+//Метод для восстановления здоровья, в зависимости от интеллекта. Без аргумента персонаж лечит себя
   heal(target = this){
+    if (this.ap < 2){
+      console.log('Not enought AP');
+      return false;
+    }
+    this.ap -= 2;
     let regenHp = target.maxHp / 10 * this.int;
     if (target.hp + regenHp > target.maxHp){
       regenHp = target.maxHp - target.hp;
@@ -97,8 +101,17 @@ class Player extends Character{
     }
     console.log(`${this.name} healed ${target.name} by ${regenHp}`);
   }
+//Метод для восстановления AP. Игрок пропускает ход
+  rest(){
+    this.ap = this.maxAp;
+  }
 //Метод для взаимодействия с NPC: попросить присоединиться, вылечить или отдать оружие, с помощью интеллекта или силы
   talk(target, ask = 'heal', forced = false){
+    if (this.ap < 2){
+      console.log('Not enought AP');
+      return false;
+    }
+    this.ap -= 2;
     let param = forced ? 'str' : 'int';
     if (ask === 'heal'){
       this.makeToDo(target, this[param], target[param], target.heal);
@@ -159,14 +172,13 @@ class Lock{
   constructor(){
     this.fortified = rand(0, 1);
     this.electric = rand(0, 1);
-    this.opened = false;
   }
 }
 
 class Weapon{
   constructor(){
     this.demage = rand(5, 10);
-    this.apCost = rand(2, 3);
+    this.apCost = rand(2, 2);
   }
 }
 
@@ -231,7 +243,7 @@ function startNextTurn(character){
     case 0:
     case 1:
     case 2:
-      fight(character, new Enemy());
+      battle(character, new Enemy());
       break;
     case 3:
     case 4:
@@ -242,24 +254,32 @@ function startNextTurn(character){
       character.talk(new NPC());
   }
 }
-
+//Функция для вывода статуса боя
 function battleDisplay(player, boss){
   console.log(`${boss.name} HP: ${boss.hp}, ${boss.name} AP: ${boss.ap}, ${player.name} HP: ${player.hp}, ${player.name} AP: ${player.ap}`);
 }
-
-function fight(side1, side2){
+//Функция боя
+function battle(side1, side2){
   while (!side1.dead && !side2.dead){
-    side1.attack(side2);
-    if (side1.dead || side2.dead){
+    battleRound(side1, side2);
+    if (side2.dead){
       break;
     }
-    side2.attack(side1);
+    battleRound(side2, side1);
   }
-  console.log(`Fight is over`);
+  console.log(`Battle is over`);
   battleDisplay(side1, side2);
-  if (!player1.dead){
-    player1.heal();
+}
+//Функция для раунда боя (персонаж наносит урон, пока не пончатся AP)
+function battleRound(side1, side2){
+  let stamina = side1.ap;
+  while (side1.ap - side1.weapon.apCost >= 0){
+    side1.attack(side2);
+    if (side2.dead){
+      return;
+    }
   }
+  side1.ap = stamina;
 }
 
 function rand(from, to){
@@ -279,7 +299,7 @@ function npcNameGenerator(){
 //-----------------------------
 var names = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', 'Green', 'White', 'Grey']];
 
-var player = '{"name": "John Doe", "stats": [10, 10, 10, 5], "weapon": {"demage": 1, "apCost": 1}, "armor": {"defence": 0}}';
+var player = '{"name": "John Doe", "stats": [5, 5, 5, 5], "weapon": {"demage": 1, "apCost": 1}, "armor": {"defence": 0}}';
 player = JSON.parse(player);
 var player1 = new Player(player);
 
