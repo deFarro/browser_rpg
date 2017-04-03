@@ -25,7 +25,7 @@ class Character{
     return this.armor.defence + this.str;
   }
   attack(target){
-    let damage = this.attackRate * rand(1, 2) - target.defenceRate;
+    let damage = this.attackRate - target.defenceRate;
     if (damage < 0){
       damage = 0;
     }
@@ -44,7 +44,7 @@ class Player extends Character{
     super(characterStats);
     this.int = characterStats.stats[2];
     this.luc = characterStats.stats[3];
-    this.companion = {name: '', hp: 0, attackRate: 0, defenceRate: 0};
+    this.companion = null;
   }
 //Метод для взлома физических замков, в зависимости от ловкости
   lockpick(target){
@@ -66,13 +66,13 @@ class Player extends Character{
   }
 //Метод для реализации механики взлома замка
   breakAnyLock(target, typeParam){
-    if (typeParam >= 5){
+    if (typeParam >= target.lock.level){
       if (this.ap < 2){
         console.log('Not enought AP');
         return false;
       }
       this.ap -= 2;
-      if (rand(0,9) < typeParam) {
+      if (rand(0,9) + target.lock.level < typeParam + this.luc) {
         this.weapon = target.content;
         console.log('Container opened');
       }
@@ -105,7 +105,7 @@ class Player extends Character{
   rest(){
     this.ap = this.maxAp;
   }
-//Метод для взаимодействия с NPC: попросить присоединиться, вылечить или отдать оружие, с помощью интеллекта или силы
+//Метод для взаимодействия с NPC: попросить присоединиться, вылечить или отдать оружие, убедить с помощью интеллекта или силы
   talk(target, ask = 'heal', forced = false){
     if (this.ap < 2){
       console.log('Not enought AP');
@@ -114,22 +114,22 @@ class Player extends Character{
     this.ap -= 2;
     let param = forced ? 'str' : 'int';
     if (ask === 'heal'){
-      this.makeToDo(target, this[param], target[param], target.heal);
+      this.makeToDo(target, this[param], target[param], target.heal, ask);
     }
-    if (ask === 'assist'){
-      this.makeToDo(target, this[param], target[param], target.join);
+    if (ask === 'join'){
+      this.makeToDo(target, this[param], target[param], target.join, ask);
     }
     if (ask === 'supply'){
-      this.makeToDo(target, this[param], target[param], target.supply);
+      this.makeToDo(target, this[param], target[param], target.supply, ask);
     }
   }
   //Метод убеждения NPC
-  makeToDo(target, typeParamPlayer, typeParamNPC, action){
-    if (typeParamPlayer > typeParamNPC) {
+  makeToDo(target, typeParamPlayer, typeParamNPC, action, subject){
+    if (typeParamPlayer + Math.floor(this.luc / 2) > typeParamNPC) {
       action.call(target, this);
     }
     else {
-      console.log(`${target.name} won't do it`);
+      console.log(`${target.name} won't ${subject} you`);
     }
   }
 }
@@ -147,8 +147,8 @@ class Enemy extends Character{
 class NPC extends Enemy{
   constructor(){
     super();
-    this.name = npcNameGenerator();
-    this.int = Math.floor(this.level / 2);
+    this.name = npcNameGenerator() + this.level;
+    this.int = 5 + Math.floor(this.level / 2);
   }
   join(target){
     target.companion = {name: this.name, hp: this.hp, attackRate: this.weapon.demage + this.str, defenceRate: this.armor.defence + this.str};
@@ -172,6 +172,7 @@ class Lock{
   constructor(){
     this.fortified = rand(0, 1);
     this.electric = rand(0, 1);
+    this.level = rand (5, 10);
   }
 }
 
@@ -237,7 +238,7 @@ function getEnemyStats(){
 //Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
 var turn = 0;
 function startNextTurn(character){
-  console.log(`>>> Turn №${++turn}`);
+  console.log(`__________ Turn №${++turn} __________`);
   let index = rand(0, 5);
   switch (index){
     case 0:
@@ -248,7 +249,6 @@ function startNextTurn(character){
     case 3:
     case 4:
       character.lockpick(new Container());
-      character.hack(new Container());
       break;
     case 5:
       character.talk(new NPC());
@@ -269,8 +269,18 @@ function battle(side1, side2){
   }
   console.log(`Battle is over`);
   battleDisplay(side1, side2);
+  if (side1.dead){
+    side1.hp = side1.maxHp;
+    if (side1.level > 0){
+      side1.level--;
+    }
+    side1.dead = false;
+    }
+  else {
+    side1.level++;
+  }
 }
-//Функция для раунда боя (персонаж наносит урон, пока не пончатся AP)
+//Функция для раунда боя (персонаж наносит урон, пока не кончатся AP)
 function battleRound(side1, side2){
   let stamina = side1.ap;
   while (side1.ap - side1.weapon.apCost >= 0){
@@ -293,11 +303,11 @@ function enemyNameGenerator(){
 
 //Генератор человеческих имён
 function npcNameGenerator(){
-  return names[0][rand(0, 4)] + ' ' + names[1][rand(0, 4)];
+  return npcNames[0][rand(0, 4)] + ' ' + npcNames[1][rand(0, 4)];
 }
+var npcNames = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', 'Green', 'White', 'Grey']];
 
 //-----------------------------
-var names = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', 'Green', 'White', 'Grey']];
 
 var player = '{"name": "John Doe", "stats": [5, 5, 5, 5], "weapon": {"demage": 1, "apCost": 1}, "armor": {"defence": 0}}';
 player = JSON.parse(player);
