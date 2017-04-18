@@ -1,12 +1,10 @@
 'use strict';
-
+// Общий прото-класс для всех персонажей игры - игроков, противников, NPC
 class Character{
   constructor(characterStats){
     this.name = characterStats.name;
     this.str = characterStats.stats[0];
     this.dex = characterStats.stats[1];
-    this.weapon = characterStats.weapon;
-    this.armor = characterStats.armor;
     this.hp = this.maxHp;
     this.ap = this.maxAp;
     this.level = 0;
@@ -24,6 +22,7 @@ class Character{
   get defenceRate(){
     return this.armor.defence + this.str;
   }
+// Универсальный метод для атаки
   attack(target){
     let damage = this.attackRate - target.defenceRate;
     if (damage < 0){
@@ -39,30 +38,31 @@ class Character{
   }
 }
 
+// Класс для игрока/игроков
 class Player extends Character{
   constructor(characterStats){
     super(characterStats);
+    this.weapon = weapons[0];
+    this.armor = armors[0];
     this.int = characterStats.stats[2];
     this.luc = characterStats.stats[3];
     this.companion = null;
     this.levelups = [];
   }
-
 // Методы для повышения характеристик и для потери, при понижении уровня
   levelup(){
-    console.log(`${this.name} got new level!`)
+    console.log(`${this.name} got a new level`)
     this.level++;
     this.levelups.push('str');
     this[this.levelups[this.levelups.length - 1]]++;
   }
   leveldown(){
-    console.log(`${this.name} lost a level!`)
+    console.log(`${this.name} lost a level`)
     this.level--;
     if (this.levelups.length){
       this[this.levelups.pop()]--;
     }
   }
-
 // Метод для взлома физических замков, в зависимости от ловкости
   lockpick(target){
     if (target.lock.electric){
@@ -118,12 +118,12 @@ class Player extends Character{
     }
     console.log(`${this.name} healed ${target.name} by ${regenHp}`);
   }
-// Метод для восстановления AP. Игрок пропускает ход
+// Метод для восстановления AP. Игрок пропускает ход (только для мультиплеера)
   rest(){
     this.ap = this.maxAp;
   }
 // Метод для взаимодействия с NPC: попросить присоединиться, вылечить или отдать оружие, убедить с помощью интеллекта или силы
-  talk(target, ask = 'heal', forced = false){
+  talk(target, ask = 'join', forced = false){
     if (this.ap < 2){
       console.log('Not enought AP');
       return false;
@@ -157,17 +157,17 @@ class Enemy extends Character{
     let protoStats = new NextEnemyStats();
     super(protoStats);
     this.level = protoStats.level;
+    this.weapon = weapons[4];
+    this.armor = armors[4];
   }
 }
 
 // Конструктор генерации объекта с данными для создания нового противника
 class NextEnemyStats {
-  constructor(level){
+  constructor(){
     this.name = enemyNameGenerator();
     this.level = getRandomLevel();
     this.stats = this.getEnemyStats();
-    this.weapon = {demage: 2, apCost: 3};
-    this.armor = {defence: 0};
   }
 
   // Функция, которая распределяет уровни противника по характеристикам
@@ -208,11 +208,11 @@ function getRandomLevel(){
 class NPC extends Enemy{
   constructor(){
     super();
-    this.name = npcNameGenerator() + this.level;
+    this.name = npcNameGenerator();
     this.int = 5 + Math.floor(this.level / 2);
   }
   join(target){
-    target.companion = {name: this.name, hp: this.hp, attackRate: this.weapon.demage + this.str, defenceRate: this.armor.defence + this.str};
+    target.companion = this;
     console.log(`${this.name} joined ${target.name}`);
   }
   supply(target){
@@ -225,7 +225,14 @@ NPC.prototype.heal = Player.prototype.heal;
 class Container{
   constructor(){
     this.lock = new Lock();
-    this.content = new Weapon();
+  }
+  get content(){
+    if (rand(0, 1)){
+      return weapons[rand(0, 10)];
+    }
+    else {
+      return armors[rand(0, 10)];
+    }
   }
 }
 
@@ -237,24 +244,11 @@ class Lock{
   }
 }
 
-class Weapon{
-  constructor(){
-    this.demage = rand(5, 10);
-    this.apCost = rand(2, 2);
-  }
-}
-
-class Armor{
-  constructor(){
-    this.defence = rand(5, 10);
-  }
-}
-
 // Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
 var turn = 0;
 function startNextTurn(character){
   console.log(`__________ Turn №${++turn} __________`);
-  let index = rand(0, 5);
+  let index = rand(5, 5);
   switch (index){
     case 0:
     case 1:
@@ -271,8 +265,8 @@ function startNextTurn(character){
 }
 
 // Функция для вывода статуса боя
-function battleDisplay(player, boss){
-  console.log(`${boss.name} HP: ${boss.hp}, ${boss.name} AP: ${boss.ap}, ${player.name} HP: ${player.hp}, ${player.name} AP: ${player.ap}`);
+function battleDisplay(player, enemy){
+  console.log(`${enemy.name} HP: ${enemy.hp} AP: ${enemy.ap}, ${player.name} HP: ${player.hp} AP: ${player.ap}`);
 }
 // Функция боя
 function battle(side1, side2){
@@ -298,8 +292,16 @@ function battle(side1, side2){
     side1.levelup();
   }
 }
+
 // Функция для раунда боя (персонаж наносит урон, пока не кончатся AP)
 function battleRound(side1, side2){
+
+
+
+
+
+
+
   let stamina = side1.ap;
   while (side1.ap - side1.weapon.apCost >= 0){
     side1.attack(side2);
@@ -312,6 +314,37 @@ function battleRound(side1, side2){
 
 function rand(from, to){
   return Math.floor(Math.random() * (to - from + 1) + from);
+}
+
+// Генератор предметов с разными параметрами. Принимает максимальное значение нужного бонуса и тип
+function* createItems(maxChar, type) {
+  for (let i = 0; i < maxChar; i++) {
+    let item = {};
+    item[type.mainChar] = i + 1;
+    item.weight = Math.floor(i * 1.5);
+    if (type.secondChar) {
+      item[type.secondChar] = Math.floor(i / 3 + 1);
+    }
+  yield item;
+  }
+}
+
+// Генератор массива оружия с разными параметрами
+function makeWeaponsArray(){
+  var weapons = [];
+  for (let weapon of createItems(10, {mainChar: 'damage', secondChar: 'apCost'})){
+    weapons.push(weapon);
+  }
+  return weapons;
+}
+
+// Генератор массива брони с разными параметрами
+function makeArmorsArray(){
+  var armors = [];
+  for (let armor of createItems(10, {mainChar: 'defence'})){
+    armors.push(armor);
+  }
+  return armors;
 }
 
 // Генератор имён роботов
@@ -327,10 +360,15 @@ var npcNames = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', '
 
 //-----------------------------
 
-var player = '{"name": "John Doe", "stats": [5, 5, 5, 5], "weapon": {"demage": 1, "apCost": 1}, "armor": {"defence": 0}}';
+var weapons = makeWeaponsArray();
+var armors = makeArmorsArray();
+
+var player = '{"name": "John Doe", "stats": [5, 50, 50, 5]}';
 player = JSON.parse(player);
 var player1 = new Player(player);
 
 startNextTurn(player1);
-startNextTurn(player1);
-startNextTurn(player1);
+// startNextTurn(player1);
+// startNextTurn(player1);
+
+console.log(player1.companion);
