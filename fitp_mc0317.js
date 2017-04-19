@@ -48,6 +48,7 @@ class Player extends Character{
     this.luc = characterStats.stats[3];
     this.companion = null;
     this.levelups = [];
+    this.items = ['Medkit', 'Ammo'];
   }
 // Методы для повышения характеристик и для потери, при понижении уровня
   levelup(){
@@ -150,6 +151,16 @@ class Player extends Character{
     }
   }
 }
+// Итератор для листания списка предметов персонажа
+Player.prototype[Symbol.iterator] = function() {
+  var items = [this.weapon, this.armor];
+  items = items.concat(this.items);
+  return {
+    next() {
+      return {done: !items.length, value: items.shift()};
+    }
+  }
+}
 
 // Класс противника. Использует объект со случайными данными для создания
 class Enemy extends Character{
@@ -248,7 +259,7 @@ class Lock{
 var turn = 0;
 function startNextTurn(character){
   console.log(`__________ Turn №${++turn} __________`);
-  let index = rand(5, 5);
+  let index = rand(0, 5);
   switch (index){
     case 0:
     case 1:
@@ -295,21 +306,27 @@ function battle(side1, side2){
 
 // Функция для раунда боя (персонаж наносит урон, пока не кончатся AP)
 function battleRound(side1, side2){
-
-
-
-
-
-
-
+  // Проверяем на наличие помощника у цели. Если есть, то решаем кого атаковать (у кого меньше HP)
+  if (side2.companion){
+    if (!side2.companion.dead) {
+      side2 = side2.hp > side2.companion.hp ? side2.companion : side2;
+    }
+  }
   let stamina = side1.ap;
   while (side1.ap - side1.weapon.apCost >= 0){
     side1.attack(side2);
     if (side2.dead){
+      side1.ap = side1.maxAp;
       return;
     }
   }
   side1.ap = side1.maxAp;
+  // Проверяем на наличие помощника у атакующего. Если есть, то атакует помощник
+  if (side1.companion){
+    if (!side1.companion.dead) {
+      battleRound(side1.companion, side2);
+    }
+  }
 }
 
 function rand(from, to){
@@ -332,7 +349,7 @@ function* createItems(maxChar, type) {
 // Генератор массива оружия с разными параметрами
 function makeWeaponsArray(){
   var weapons = [];
-  for (let weapon of createItems(10, {mainChar: 'damage', secondChar: 'apCost'})){
+  for (let weapon of createItems(10, {mainChar: 'demage', secondChar: 'apCost'})){
     weapons.push(weapon);
   }
   return weapons;
@@ -363,12 +380,10 @@ var npcNames = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', '
 var weapons = makeWeaponsArray();
 var armors = makeArmorsArray();
 
-var player = '{"name": "John Doe", "stats": [5, 50, 50, 5]}';
+var player = '{"name": "John Doe", "stats": [5, 5, 5, 5]}';
 player = JSON.parse(player);
 var player1 = new Player(player);
 
 startNextTurn(player1);
-// startNextTurn(player1);
-// startNextTurn(player1);
-
-console.log(player1.companion);
+startNextTurn(player1);
+startNextTurn(player1);
