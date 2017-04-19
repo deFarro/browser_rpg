@@ -30,10 +30,10 @@ class Character{
     }
     target.hp -= damage;
     this.ap -= this.weapon.apCost;
-    console.log(`${this.name} (level ${this.level}) hit ${target.name} (level ${target.level}) by ${damage}, ${this.ap} AP left`);
+    console.log(`${this.name} (level ${this.level}) hit ${target.name} (level ${target.level}) by ${damage}, ${this.ap} AP left.`);
     if (target.hp <= 0){
       target.dead = true;
-      console.log(`${target.name} is dead`);
+      console.log(`${target.name} is dead.`);
     }
   }
 }
@@ -52,22 +52,40 @@ class Player extends Character{
   }
 // Методы для повышения характеристик и для потери, при понижении уровня
   levelup(){
-    console.log(`${this.name} got a new level`)
+    console.log(`${this.name} got a new level.`)
     this.level++;
     this.levelups.push('str');
     this[this.levelups[this.levelups.length - 1]]++;
   }
   leveldown(){
-    console.log(`${this.name} lost a level`)
+    console.log(`${this.name} lost a level.`)
     this.level--;
     if (this.levelups.length){
       this[this.levelups.pop()]--;
     }
   }
+// Метод для экипирования предмета
+  equip(item, target){
+    if (target.str >= item.weight) {
+      target[item.type] = item;
+      console.log(`Item equiped.`);
+    }
+    else {
+      console.log(`Cannot equip this item. Too heavy.`)
+    }
+  }
+// Метод для выбора действия с предметом
+  chooseItem(item, confirm = true, selfUse = true){
+    console.log(`${this.name} found the ${item.type} (${[...item].join(', ')}).`)
+    if (confirm) {
+    let target = selfUse ? this : this.companion;
+    this.equip(item, target);
+    }
+  }
 // Метод для взлома физических замков, в зависимости от ловкости
   lockpick(target){
     if (target.lock.electric){
-      console.log('Cannot lockpick electric lock');
+      console.log('Cannot lockpick electric lock.');
     }
     else {
       this.breakAnyLock(target, this.dex)
@@ -76,7 +94,7 @@ class Player extends Character{
 // Метод для взлома электронных замков, в зависимости от интеллекта
   hack(target){
     if (!target.lock.electric){
-      console.log('Cannot hack physical lock');
+      console.log('Cannot hack physical lock.');
     }
     else {
       this.breakAnyLock(target, this.int);
@@ -86,26 +104,26 @@ class Player extends Character{
   breakAnyLock(target, typeParam){
     if (typeParam >= target.lock.level){
       if (this.ap < 2){
-        console.log('Not enought AP');
+        console.log('Not enought AP.');
         return false;
       }
       this.ap -= 2;
       if (rand(0,9) + target.lock.level < typeParam + this.luc) {
-        this.weapon = target.content;
-        console.log('Container opened');
+        console.log('Container opened.');
+        this.chooseItem(target.content);
       }
       else {
-        console.log('Lockpick failed');
+        console.log('Lockpick failed.');
       }
     }
     else {
-      console.log('Lock is too complicated');
+      console.log('Lock is too complicated.');
     }
   }
 // Метод для восстановления здоровья, в зависимости от интеллекта. Без аргумента персонаж лечит себя
   heal(target = this){
     if (this.ap < 2){
-      console.log('Not enought AP');
+      console.log('Not enought AP.');
       return false;
     }
     this.ap -= 2;
@@ -117,7 +135,7 @@ class Player extends Character{
     else {
       target.hp += regenHp;
     }
-    console.log(`${this.name} healed ${target.name} by ${regenHp}`);
+    console.log(`${this.name} healed ${target.name} by ${regenHp}.`);
   }
 // Метод для восстановления AP. Игрок пропускает ход (только для мультиплеера)
   rest(){
@@ -126,7 +144,7 @@ class Player extends Character{
 // Метод для взаимодействия с NPC: попросить присоединиться, вылечить или отдать оружие, убедить с помощью интеллекта или силы
   talk(target, ask = 'join', forced = false){
     if (this.ap < 2){
-      console.log('Not enought AP');
+      console.log('Not enought AP.');
       return false;
     }
     this.ap -= 2;
@@ -147,7 +165,7 @@ class Player extends Character{
       action.call(target, this);
     }
     else {
-      console.log(`${target.name} won't ${subject} you`);
+      console.log(`${target.name} won't ${subject} ${this.name}.`);
     }
   }
 }
@@ -181,7 +199,7 @@ class NextEnemyStats {
     this.stats = this.getEnemyStats();
   }
 
-  // Функция, которая распределяет уровни противника по характеристикам
+// Функция, которая распределяет уровни противника по характеристикам
   getEnemyStats(){
     let stats = [], levelups = this.level;
     stats[0] = 5 + Math.ceil(levelups / 2);
@@ -224,11 +242,11 @@ class NPC extends Enemy{
   }
   join(target){
     target.companion = this;
-    console.log(`${this.name} joined ${target.name}`);
+    console.log(`${this.name} joined ${target.name}.`);
   }
   supply(target){
     target.weapon = this.weapon;
-    console.log(`${this.name} passed weapon to ${target.name}`);
+    console.log(`${this.name} passed weapon to ${target.name}.`);
   }
 }
 NPC.prototype.heal = Player.prototype.heal;
@@ -239,10 +257,10 @@ class Container{
   }
   get content(){
     if (rand(0, 1)){
-      return weapons[rand(0, 10)];
+      return weapons[rand(0, weapons.length - 1)];
     }
     else {
-      return armors[rand(0, 10)];
+      return armors[rand(0, armors.length - 1)];
     }
   }
 }
@@ -288,7 +306,7 @@ function battle(side1, side2){
     }
     battleRound(side2, side1);
   }
-  console.log(`Battle is over`);
+  console.log(`Battle is over.`);
   battleDisplay(side1, side2);
   if (side1.dead){
     side1.hp = side1.maxHp;
@@ -338,27 +356,40 @@ function* createItems(maxChar, type) {
   for (let i = 0; i < maxChar; i++) {
     let item = {};
     item[type.mainChar] = i + 1;
-    item.weight = Math.floor(i * 1.5);
+    item.weight = Math.floor(i * 1.4);
     if (type.secondChar) {
       item[type.secondChar] = Math.floor(i / 3 + 1);
     }
+// Итератор для листания свойств предмета
+  item[Symbol.iterator] = function(){
+    let stats = Object.keys(item);
+    stats = stats.map(stat => {return [stat] + ": " + item[stat]})
+    .filter(stat => {return stat.indexOf('type') == -1});
+    return {
+      next() {
+        return {done: !stats.length, value: stats.shift()}
+      }
+    }
+  }
   yield item;
   }
 }
 
 // Генератор массива оружия с разными параметрами
-function makeWeaponsArray(){
+function makeWeaponsArray(maxDem){
   var weapons = [];
-  for (let weapon of createItems(10, {mainChar: 'demage', secondChar: 'apCost'})){
+  for (let weapon of createItems(maxDem, {mainChar: 'demage', secondChar: 'apCost'})){
+    weapon.type = 'weapon';
     weapons.push(weapon);
   }
   return weapons;
 }
 
 // Генератор массива брони с разными параметрами
-function makeArmorsArray(){
+function makeArmorsArray(maxDef){
   var armors = [];
-  for (let armor of createItems(10, {mainChar: 'defence'})){
+  for (let armor of createItems(maxDef, {mainChar: 'defence'})){
+    armor.type = 'armor';
     armors.push(armor);
   }
   return armors;
@@ -377,12 +408,11 @@ var npcNames = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', '
 
 //-----------------------------
 
-var weapons = makeWeaponsArray();
-var armors = makeArmorsArray();
+var weapons = makeWeaponsArray(15);
+var armors = makeArmorsArray(15);
 
 var player = '{"name": "John Doe", "stats": [5, 5, 5, 5]}';
-player = JSON.parse(player);
-var player1 = new Player(player);
+var player1 = new Player(JSON.parse(player));
 
 startNextTurn(player1);
 startNextTurn(player1);
