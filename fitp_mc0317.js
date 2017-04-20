@@ -407,7 +407,41 @@ function npcNameGenerator(){
 var npcNames = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', 'Green', 'White', 'Grey']];
 
 //-----------------------------
+// Инициализация персонажей и предметов на промисах
+// Исключительно в образовательных целях - в браузерной реализации всё будет на событиях
+/*
+var weapons, armors;
 
+// Промис для подготовки массива с оружием и бронёй
+var prepareWeapons = new Promise((done, fail) => {
+  weapons = makeWeaponsArray(15);
+  armors = makeArmorsArray(15);
+  if (weapons instanceof Array && armors instanceof Array){
+    done();
+  }
+  fail('Item generation error');
+});
+
+// Промис для подготовки объекта игрока
+var initialize = new Promise((done, fail) => {
+  let player = '{"name": "John Doe", "stats": [5, 5, 5, 5]}';
+  let player1 = new Player(JSON.parse(player));
+  if (player1 && typeof player1 === 'object'){
+    done(player1);
+  }
+  fail('Data is incorrect');
+});
+
+// Функция для совершения заданного количества ходов (для наглядности)
+function doTurns(player, amount = 1){
+  for (let i = 0; i < amount; i++){
+    startNextTurn(player);
+  }
+}
+
+prepareWeapons.then(() => initialize.then(player => doTurns(player, 3))).catch(err => console.log(err));
+*/
+//-----------------------------
 var weapons = makeWeaponsArray(15);
 var armors = makeArmorsArray(15);
 
