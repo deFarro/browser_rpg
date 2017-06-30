@@ -1,0 +1,55 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Andale Mono, sans-serif;
+}
+
+.fistScreen {
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(white, transparent 5%),
+              linear-gradient(0deg, black, transparent 5%),
+              url("../img/bg_main.jpg");
+  background-size: cover;
+}
+
+.gameTitle {
+  padding: 30vh 0 0 30vh;
+  font-size: 5em;
+  font-weight: bold;
+  color: white;
+  text-shadow: 3px 3px 5px Sienna;
+
+}
+
+.modalFrame {
+  width: 40%;
+  max-height: 100px;
+  margin: 30px auto;
+  font-size: 2em;
+  color: white;
+  text-align: center;
+  border: solid 2px white;
+  border-radius: 10px;
+}
+
+/* Active classes ---------------------- */
+
+.hidden {
+  display: none;
+}
+
+.clicked {
+  text-shadow: -1px -1px 5px BurlyWood;
+  padding: 0;
+  font-size: 2em;
+  transition: all 2s ease;
+}
+
+.appear {
+  overflow: hidden;
+  max-height: 400px;
+  margin: 10% auto;
+  transition: all 2s;
+}
