@@ -424,12 +424,18 @@ var prepareWeapons = new Promise((done, fail) => {
 
 // Промис для подготовки объекта игрока
 var initialize = new Promise((done, fail) => {
+  try {
   let player = '{"name": "John Doe", "stats": [5, 5, 5, 5]}';
-  let player1 = new Player(JSON.parse(player));
-  if (player1 && typeof player1 === 'object'){
+  var player1 = new Player(JSON.parse(player));
+  }
+  catch(err) {
+    fail('JSON is incorrect');
+  }
+  // Проверяем на отсутствие свойств со значением "undefined"
+  if (Object.keys(player1).map((key) => {return player1[key]}).indexOf(undefined) == -1) {
     done(player1);
   }
-  fail('Data is incorrect');
+  fail('Stats are not full');
 });
 
 // Функция для совершения заданного количества ходов (для наглядности)
@@ -439,7 +445,7 @@ function doTurns(player, amount = 1){
   }
 }
 
-prepareWeapons.then(() => initialize.then(player => doTurns(player, 3))).catch(err => console.log(err));
+prepareWeapons.then(initialize.then(player => doTurns(player, 3))).catch(err => console.log(err));
 */
 //-----------------------------
 var weapons = makeWeaponsArray(15);
