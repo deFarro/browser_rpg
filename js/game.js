@@ -408,7 +408,6 @@ var npcNames = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', '
 
 //-----------------------------
 // Инициализация персонажей и предметов на промисах
-// Исключительно в образовательных целях - в браузерной реализации всё будет на событиях
 /*
 var weapons, armors;
 
@@ -448,12 +447,12 @@ function doTurns(player, amount = 1){
 prepareWeapons.then(initialize.then(player => doTurns(player, 3))).catch(err => console.log(err));
 */
 //-----------------------------
-var weapons = makeWeaponsArray(15);
-var armors = makeArmorsArray(15);
-
-var player = '{"name": "John Doe", "stats": [5, 5, 5, 5]}';
-var player1 = new Player(JSON.parse(player));
-
-startNextTurn(player1);
-startNextTurn(player1);
-startNextTurn(player1);
+// var weapons = makeWeaponsArray(15);
+// var armors = makeArmorsArray(15);
+//
+// var player = '{"name": "John Doe", "stats": [5, 5, 5, 5]}';
+// var player1 = new Player(JSON.parse(player));
+//
+// startNextTurn(player1);
+// startNextTurn(player1);
+// startNextTurn(player1);

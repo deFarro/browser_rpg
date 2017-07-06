@@ -1,11 +1,9 @@
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
-  font-family: Andale Mono, sans-serif;
 }
 
-.fistScreen {
+body {
+  font-family: Andale Mono, sans-serif;
   width: 100vw;
   height: 100vh;
   background: linear-gradient(white, transparent 5%),
@@ -15,23 +13,25 @@
 }
 
 .gameTitle {
+  margin: 0;
   padding: 30vh 0 0 30vh;
   font-size: 5em;
-  font-weight: bold;
+  font-weight: 900;
   color: white;
   text-shadow: 3px 3px 5px Sienna;
-
 }
 
-.modalFrame {
+.mainContent {
   width: 40%;
   max-height: 100px;
   margin: 30px auto;
   font-size: 2em;
-  color: white;
+  color: black;
+  background-color: white;
   text-align: center;
   border: solid 2px white;
   border-radius: 10px;
+  cursor: pointer;
 }
 
 /* Active classes ---------------------- */
@@ -40,16 +40,17 @@
   display: none;
 }
 
-.clicked {
+.clickedTitle {
   text-shadow: -1px -1px 5px BurlyWood;
   padding: 0;
   font-size: 2em;
   transition: all 2s ease;
 }
 
-.appear {
+.frameAppear {
   overflow: hidden;
   max-height: 400px;
   margin: 10% auto;
+  cursor: default;
   transition: all 2s;
 }
