@@ -1,0 +1,18 @@
+@mixin flex-container($dir: row) {
+  display: flex;
+  justify-content: center;
+  flex-direction: $dir;
+  flex-wrap: wrap;
+}
+
+@mixin outline($color: black) {
+  text-shadow: 2px 0 0 $color,
+               0 2px 0 $color,
+               -2px 0 0 $color,
+               0 -2px 0 $color;
+}
+
+@mixin text-styling($size: 1em) {
+  font-size: $size;
+  font-family: Andale Mono, sans-serif;
+}

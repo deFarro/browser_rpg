@@ -1,0 +1,130 @@
+@import "partials/mixins";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Andale Mono, sans-serif;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(white, transparent 5%),
+              linear-gradient(0deg, black, transparent 5%),
+              url("../img/bg_main.jpg");
+  background-size: cover;
+}
+
+.gameTitle {
+  @include text-styling(5em);
+  @include outline();
+  padding: 30vh 0 0 30vh;
+  margin: 0;
+  font-weight: 900;
+  color: white;
+}
+
+.clickedTitle {
+  @extend .gameTitle;
+  text-shadow: -1px -1px 5px BurlyWood;
+  padding: 0;
+  font-size: 2em;
+  transition: all 2s ease;
+}
+
+.startButton {
+  @include text-styling(2em);
+  width: 40%;
+  max-height: 100px;
+  margin: 30px auto;
+  color: black;
+  background-color: white;
+  text-align: center;
+  border: solid 2px black;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.setupScreen {
+  @extend .startButton;
+  overflow: hidden;
+  max-height: 400px;
+  margin: 5% auto;
+  cursor: default;
+  transition: all 2s ease;
+  p:first-child {
+    margin: 0.5em;
+  }
+  div {
+    flex-basis: 70%;
+    flex-grow: 1;
+  }
+}
+
+.name-field {
+  @include text-styling(0.7em);
+  margin-bottom: 1em;
+  text-align: center;
+  border: none;
+  border-bottom: 2px dashed grey;
+  &:focus {
+    outline: none;
+    border-bottom: 2px solid grey;
+  }
+}
+
+.stat-field {
+  @include flex-container();
+  span {
+    @include text-styling(0.9em);
+    flex-basis: 50%;
+    text-align: left;
+    padding-left: 5%;
+    &:first-child {
+      @include text-styling(0.7em);
+      text-align: right;
+      padding-top: 0.3em;
+    }
+  }
+  input {
+    @include text-styling(0.7em);
+    width: 40px;
+    text-align: center;
+    padding: 0;
+    border: none;
+  }
+  i {
+    @include text-styling(0.8em);
+    font-style: normal;
+    margin: 0 5%;
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.remain-stats {
+  font-size: 0.5em;
+  text-transform: capitalize;
+  margin: 1em 0 1em 0;
+}
+
+.create-char-button {
+  @include text-styling(0.7em);
+  width: 100%;
+  height: 2em;
+  color: white;
+  background-color: black;
+  border: none;
+  text-transform: uppercase;
+  cursor: pointer;
+  &:focus {
+    outline: none;
+  }
+}
+
+/* Active classes ---------------------- */
+
+.hidden {
+  display: none;
+  transition: all 2s ease;
+}
