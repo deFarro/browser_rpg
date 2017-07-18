@@ -1,7 +1,16 @@
 'use strict';
+//Класс для отслеживания хода игры
+class Game {
+  constructor() {
+    this.players = [];
+    this.turn = 0;
+    this.whosTurn = 0;
+  }
+}
+
 // Общий прото-класс для всех персонажей игры - игроков, противников, NPC
 class Character{
-  constructor(characterStats){
+  constructor(characterStats) {
     this.name = characterStats.name;
     this.str = characterStats.stats[0];
     this.dex = characterStats.stats[1];
@@ -10,28 +19,28 @@ class Character{
     this.level = 0;
     this.dead = false;
   }
-  get maxHp(){
+  get maxHp() {
     return this.str * 10 + 10;
   }
-  get maxAp(){
-    return this.dex;
+  get maxAp() {
+    return this.dex + 2;
   }
-  get attackRate(){
+  get attackRate() {
     return this.weapon.demage + this.str;
   }
-  get defenceRate(){
+  get defenceRate() {
     return this.armor.defence + this.str;
   }
 // Универсальный метод для атаки
-  attack(target){
+  attack(target) {
     let damage = this.attackRate - target.defenceRate;
-    if (damage < 0){
+    if (damage < 0) {
       damage = 0;
     }
     target.hp -= damage;
     this.ap -= this.weapon.apCost;
     console.log(`${this.name} (level ${this.level}) hit ${target.name} (level ${target.level}) by ${damage}, ${this.ap} AP left.`);
-    if (target.hp <= 0){
+    if (target.hp <= 0) {
       target.dead = true;
       console.log(`${target.name} is dead.`);
     }
