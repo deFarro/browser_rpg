@@ -35,8 +35,8 @@ class Character{
 // Универсальный метод для атаки
   attack(target) {
     let damage = this.attackRate - target.defenceRate;
-    if (damage < 0) {
-      damage = 0;
+    if (damage <= 0) {
+      damage = 1;
     }
     target.hp -= damage;
     this.ap -= this.weapon.apCost;
@@ -61,10 +61,10 @@ class Player extends Character{
     this.items = ['Medkit', 'Ammo'];
   }
 // Методы для повышения характеристик и для потери, при понижении уровня
-  levelup(){
+  levelup(stat = 'str'){
     console.log(`${this.name} got a new level.`)
     this.level++;
-    this.levelups.push('str');
+    this.levelups.push(stat);
     this[this.levelups[this.levelups.length - 1]]++;
   }
   leveldown(){
@@ -192,7 +192,7 @@ Player.prototype[Symbol.iterator] = function() {
 
 // Класс противника. Использует объект со случайными данными для создания
 class Enemy extends Character{
-  constructor(){
+  constructor(weapons, armors){
     let protoStats = new NextEnemyStats();
     super(protoStats);
     this.level = protoStats.level;
@@ -327,33 +327,29 @@ function battle(side1, side2){
     side1.dead = false;
     }
   else {
-    side1.ap = side1.maxAp;
+    //side1.ap = side1.maxAp;
     side1.levelup();
   }
+  return side1;
 }
 
 // Функция для раунда боя (персонаж наносит урон, пока не кончатся AP)
 function battleRound(side1, side2){
   // Проверяем на наличие помощника у цели. Если есть, то решаем кого атаковать (у кого меньше HP)
-  if (side2.companion){
-    if (!side2.companion.dead) {
-      side2 = side2.hp > side2.companion.hp ? side2.companion : side2;
-    }
+  if (side2.companion && !side2.companion.dead) {
+    side2 = side2.hp > side2.companion.hp ? side2.companion : side2;
   }
-  let stamina = side1.ap;
   while (side1.ap - side1.weapon.apCost >= 0){
     side1.attack(side2);
     if (side2.dead){
-      side1.ap = side1.maxAp;
+      //side1.ap = side1.maxAp;
       return;
     }
   }
   side1.ap = side1.maxAp;
   // Проверяем на наличие помощника у атакующего. Если есть, то атакует помощник
-  if (side1.companion){
-    if (!side1.companion.dead) {
-      battleRound(side1.companion, side2);
-    }
+  if (side1.companion && !side1.companion.dead) {
+    battleRound(side1.companion, side2);
   }
 }
 

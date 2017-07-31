@@ -130,7 +130,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [10, 0, 0, 0],
+        stats: [15, 5, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       };
@@ -152,7 +152,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       key: 'enterName',
       value: function enterName(event) {
         var cName = event.target.value;
-        // Only numbers, space, underscore and english letters are eligible
+        // Only numbers, spaces, underscores and english letters are eligible
         if (/^[\w ]{0,20}$/.test(cName)) {
           this.setState({ name: cName });
         } else {
@@ -343,6 +343,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       _this7.weapons = makeWeaponsArray(15);
       _this7.armors = makeArmorsArray(15);
       _this7.state = {
+        gameScreens: [React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) })],
         game: new Game(),
         player: new Player(props.player, _this7.weapons, _this7.armors),
         className: 'setupScreen'
@@ -365,11 +366,15 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         }, 600);
       }
     }, {
+      key: 'startTurn',
+      value: function startTurn() {
+        this.setState(battle(this.state.player, new Enemy(this.weapons, this.armors)));
+      }
+    }, {
       key: 'render',
       value: function render() {
         var _this9 = this;
 
-        console.log(this.state.player);
         return React.createElement(
           'div',
           { className: this.state.className },
@@ -378,7 +383,11 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
             { ref: function ref(element) {
                 return _this9.gameEl = element;
               }, className: 'hidden' },
-            React.createElement(GameFlowWindow, null),
+            React.createElement(
+              GameFlowWindow,
+              null,
+              this.state.gameScreens[0]
+            ),
             React.createElement(PlayerWindow, { player: this.state.player }),
             React.createElement(LogWindow, null)
           )
@@ -389,16 +398,32 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     return GameWindow;
   }(React.Component);
 
-  var GameFlowWindow = function GameFlowWindow() {
+  var GameFlowWindow = function GameFlowWindow(_ref6) {
+    var children = _ref6.children;
+
     return React.createElement(
       'div',
       { className: 'game-flow-window' },
+      children
+    );
+  };
+
+  var NextTurnButton = function NextTurnButton(_ref7) {
+    var startTurn = _ref7.startTurn;
+
+    return React.createElement(
+      'button',
+      { className: 'next-turn-button', onClick: startTurn },
       'Next turn'
     );
   };
 
-  var PlayerWindow = function PlayerWindow(_ref6) {
-    var player = _ref6.player;
+  var FaceEnemy = function FaceEnemy() {};
+  var FaceContainer = function FaceContainer() {};
+  var FaceNPC = function FaceNPC() {};
+
+  var PlayerWindow = function PlayerWindow(_ref8) {
+    var player = _ref8.player;
 
     return React.createElement(
       'div',
@@ -482,8 +507,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var Companion = function Companion(_ref7) {
-    var companion = _ref7.companion;
+  var Companion = function Companion(_ref9) {
+    var companion = _ref9.companion;
 
     return React.createElement(
       'div',
@@ -505,8 +530,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var GameScreen = function GameScreen(_ref8) {
-    var character = _ref8.character;
+  var GameScreen = function GameScreen(_ref10) {
+    var character = _ref10.character;
 
     return React.createElement(
       'div',

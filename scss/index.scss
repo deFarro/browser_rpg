@@ -209,6 +209,10 @@ body {
   height: 20%;
 }
 
+.next-turn-button {
+  @include button;
+}
+
 
 
 

@@ -74,7 +74,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [10, 0, 0, 0],
+        stats: [15, 5, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       }
@@ -88,7 +88,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     }
     enterName(event) {
       const cName = event.target.value;
-      // Only numbers, space, underscore and english letters are eligible
+      // Only numbers, spaces, underscores and english letters are eligible
       if (/^[\w ]{0,20}$/.test(cName)) {
         this.setState({name: cName});
       }
@@ -202,6 +202,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       this.weapons = makeWeaponsArray(15);
       this.armors = makeArmorsArray(15);
       this.state = {
+      gameScreens: [<NextTurnButton startTurn={this.startTurn.bind(this)} />],
       game: new Game(),
       player: new Player(props.player, this.weapons, this.armors),
       className: 'setupScreen'
@@ -217,12 +218,16 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         this.gameEl.classList.remove('hidden');
       }, 600);
     }
+    startTurn() {
+      this.setState(battle(this.state.player, new Enemy(this.weapons, this.armors)));
+    }
     render() {
-      console.log(this.state.player);
       return (
         <div className={this.state.className}>
           <div ref={element => this.gameEl = element} className="hidden">
-          <GameFlowWindow />
+          <GameFlowWindow>
+            {this.state.gameScreens[0]}
+          </GameFlowWindow>
           <PlayerWindow player={this.state.player} />
           <LogWindow />
           </div>
@@ -231,11 +236,21 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     }
   }
 
-  const GameFlowWindow = () => {
+  const GameFlowWindow = ({children}) => {
     return (
-      <div className="game-flow-window">Next turn</div>
+      <div className="game-flow-window">
+        {children}
+      </div>
     )
   }
+
+  const NextTurnButton = ({startTurn}) => {
+    return <button className="next-turn-button" onClick={startTurn}>Next turn</button>
+  };
+
+  const FaceEnemy = () => {};
+  const FaceContainer = () => {};
+  const FaceNPC = () => {};
 
   const PlayerWindow = ({player}) => {
     return (
