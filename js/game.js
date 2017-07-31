@@ -2,9 +2,10 @@
 //Класс для отслеживания хода игры
 class Game {
   constructor() {
-    this.players = [];
     this.turn = 0;
     this.whosTurn = 0;
+    this.weapons = makeWeaponsArray(15);
+    this.armors = makeArmorsArray(15);
   }
 }
 
@@ -49,7 +50,7 @@ class Character{
 
 // Класс для игрока/игроков
 class Player extends Character{
-  constructor(characterStats){
+  constructor(characterStats, weapons, armors) {
     super(characterStats);
     this.weapon = weapons[0];
     this.armor = armors[0];

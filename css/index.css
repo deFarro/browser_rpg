@@ -13,7 +13,7 @@ body {
   font-family: Andale Mono, sans-serif;
   text-shadow: 2px 0 0 black, 0 2px 0 black, -2px 0 0 black, 0 -2px 0 black;
   padding: 30vh 0 0 30vh;
-  margin: 0;
+  margin: 0 0 30px 0;
   font-weight: 900;
   color: white; }
 
@@ -21,14 +21,16 @@ body {
   text-shadow: -1px -1px 5px BurlyWood;
   padding: 0;
   font-size: 2em;
-  transition: all 2s ease; }
+  transition-duration: 1.5s;
+  transition-property: font-size, padding, margin-bottom, text-shadow;
+  transition-timing-function: ease-in; }
 
 .startButton, .setupScreen {
   font-size: 2em;
   font-family: Andale Mono, sans-serif;
   width: 40%;
-  max-height: 100px;
-  margin: 30px auto;
+  height: 40px;
+  margin: 0 auto;
   color: black;
   background-color: white;
   text-align: center;
@@ -37,11 +39,11 @@ body {
   cursor: pointer; }
 
 .setupScreen {
+  position: relative;
   overflow: hidden;
-  max-height: 400px;
-  margin: 5% auto;
+  height: 360px;
   cursor: default;
-  transition: all 2s ease; }
+  transition: height 2s ease-out; }
   .setupScreen p:first-child {
     margin: 0.5em; }
   .setupScreen div {
@@ -92,7 +94,7 @@ body {
 
 .remain-stats {
   font-size: 0.5em;
-  text-transform: capitalize;
+  text-decoration: underline;
   margin: 1em 0 1em 0; }
 
 .create-char-button {
@@ -100,17 +102,92 @@ body {
   font-family: Andale Mono, sans-serif;
   width: 100%;
   height: 2em;
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
   color: white;
   background-color: black;
   border: none;
   text-transform: uppercase;
-  cursor: pointer; }
+  cursor: pointer;
+  opacity: 1;
+  transition-duration: 0.5s;
+  transition-property: opacity; }
   .create-char-button:focus {
     outline: none; }
 
+.gameScreen {
+  width: 80%;
+  height: 500px;
+  margin: 0 auto;
+  color: black;
+  background-color: white;
+  border: solid 2px black;
+  border-radius: 10px;
+  transition-property: width, height;
+  transition-duration: 2s;
+  transition-timing-function: ease-out; }
+
+.fit-the-window {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  opacity: 1;
+  transition: opacity 2s; }
+
+.game-flow-window {
+  border: 2px solid black;
+  border-radius: 5px 0 0 0;
+  float: left;
+  width: 60%;
+  height: 80%; }
+
+.player-window {
+  border: 2px solid black;
+  border-radius: 0 5px 0 0;
+  position: relative;
+  float: right;
+  width: 40%;
+  height: 80%; }
+  .player-window .title {
+    border-bottom: 1px solid black; }
+    .player-window .title h1 {
+      margin: 1rem 0 0 0; }
+    .player-window .title h3 {
+      margin: 0;
+      padding-bottom: 1rem; }
+  .player-window .status {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-bottom: 1px solid black; }
+    .player-window .status h2 {
+      margin: 0.5rem; }
+  .player-window .items {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-bottom: 1px solid black; }
+  .player-window .stats p {
+    margin: 0.5em; }
+  .player-window .companion {
+    height: 25%;
+    width: 100%;
+    position: absolute;
+    bottom: 0px;
+    border-top: 1px solid black; }
+
+.log-window {
+  border: 2px solid black;
+  border-radius: 0 0 5px 5px;
+  clear: both;
+  width: 100%;
+  height: 20%; }
+
 /* Active classes ---------------------- */
 .hidden {
-  display: none;
-  transition: all 2s ease; }
+  opacity: 0; }
 
 /*# sourceMappingURL=index.css.map */

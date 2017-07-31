@@ -36,7 +36,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       }
     }, {
       key: 'switchToGameScreen',
-      value: function switchToGameScreen() {
+      value: function switchToGameScreen(player) {
+        this.setState({ character: player });
         this.setState({ visible: 'gameScreen' });
       }
     }, {
@@ -47,7 +48,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         } else if (this.state.visible === 'setupScreen') {
           return React.createElement(SetupScreen, { switchToGame: this.switchToGameScreen.bind(this) });
         } else if (this.state.visible === 'gameScreen') {
-          return React.createElement(GameScreen, null);
+          return React.createElement(GameScreen, { character: this.state.character });
         }
       }
     }]);
@@ -126,10 +127,11 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
 
       _this4.switchToGame = props.doNext;
       _this4.state = {
-        statsRemain: 10,
-        name: '',
-        stats: [0, 0, 0, 0],
-        statNames: ["strength", "dexterity", "intellect", "luck"],
+        statsRemain: 0,
+        name: 'Jack',
+        // To add/remove stat to the setup form just change these two following arrays
+        stats: [10, 0, 0, 0],
+        statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       };
       return _this4;
@@ -142,18 +144,23 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
 
         setTimeout(function () {
           _this5.setState({ className: 'setupScreen' });
+          // Add and remove 'hidden' to avoid overflow blinking
+          _this5.formEl.classList.remove('hidden');
         }, 0);
       }
     }, {
       key: 'enterName',
       value: function enterName(event) {
         var cName = event.target.value;
-        if (/[\w ]{0,20}$/g.test(cName)) {
+        // Only numbers, space, underscore and english letters are eligible
+        if (/^[\w ]{0,20}$/.test(cName)) {
           this.setState({ name: cName });
         } else {
           return;
         }
       }
+      //chooseGender(event) {}
+
     }, {
       key: 'plus',
       value: function plus(index) {
@@ -188,8 +195,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       value: function handleSubmit(event) {
         event.preventDefault();
         var character = { 'name': this.state.name, 'stats': this.state.stats };
-        this.switchToGame();
-        console.log(character);
+        this.switchToGame(character);
       }
     }, {
       key: 'componentDidUpdate',
@@ -215,15 +221,17 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
           ),
           React.createElement(
             'form',
-            null,
+            { ref: function ref(element) {
+                return _this6.formEl = element;
+              }, className: 'hidden' },
             React.createElement(NameField, { onChange: this.enterName.bind(this), value: this.state.name }),
-            fieldSet
-          ),
-          React.createElement(
-            'p',
-            { className: 'remain-stats' },
-            'STATS REMAIN: ',
-            this.state.statsRemain
+            fieldSet,
+            React.createElement(
+              'p',
+              { className: 'remain-stats' },
+              'STATS REMAIN: ',
+              this.state.statsRemain
+            )
           ),
           React.createElement(CreateCharButton, { onClick: this.handleSubmit.bind(this), controlView: function controlView(element) {
               return _this6.createButton = element;
@@ -243,6 +251,26 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       'div',
       null,
       React.createElement('input', { className: 'name-field', type: 'text', placeholder: 'Name', onChange: onChange, value: value })
+    );
+  };
+
+  // Feature not yet finalazed
+  var GenderField = function GenderField() {
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'label',
+        null,
+        'male',
+        React.createElement('input', { className: 'gender-field', type: 'radio', name: 'gender', value: 'male', defaultChecked: true })
+      ),
+      React.createElement(
+        'label',
+        null,
+        'female',
+        React.createElement('input', { className: 'gender-field', type: 'radio', name: 'gender', value: 'female' })
+      )
     );
   };
 
@@ -303,33 +331,190 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var GameScreen = function (_React$Component4) {
-    _inherits(GameScreen, _React$Component4);
+  var GameWindow = function (_React$Component4) {
+    _inherits(GameWindow, _React$Component4);
 
-    function GameScreen() {
-      _classCallCheck(this, GameScreen);
+    function GameWindow(props) {
+      _classCallCheck(this, GameWindow);
 
-      return _possibleConstructorReturn(this, (GameScreen.__proto__ || Object.getPrototypeOf(GameScreen)).apply(this, arguments));
+      var _this7 = _possibleConstructorReturn(this, (GameWindow.__proto__ || Object.getPrototypeOf(GameWindow)).call(this, props));
+
+      _this7.playerStats = props;
+      _this7.weapons = makeWeaponsArray(15);
+      _this7.armors = makeArmorsArray(15);
+      _this7.state = {
+        game: new Game(),
+        player: new Player(props.player, _this7.weapons, _this7.armors),
+        className: 'setupScreen'
+      };
+      return _this7;
     }
 
-    _createClass(GameScreen, [{
+    _createClass(GameWindow, [{
+      key: 'componentDidMount',
+      value: function componentDidMount() {
+        var _this8 = this;
+
+        setTimeout(function () {
+          _this8.setState({ className: 'gameScreen' });
+        }, 0);
+        setTimeout(function () {
+          // Add and remove 'hidden' to avoid overflow blinking
+          _this8.gameEl.classList.add('fit-the-window');
+          _this8.gameEl.classList.remove('hidden');
+        }, 600);
+      }
+    }, {
       key: 'render',
       value: function render() {
+        var _this9 = this;
+
+        console.log(this.state.player);
         return React.createElement(
           'div',
-          null,
-          React.createElement(GameTitle, { appliedClass: 'clickedTitle' }),
+          { className: this.state.className },
           React.createElement(
             'div',
-            { className: 'setupScreen' },
-            '\u041F\u043E\u0435\u0445\u0430\u043B\u0438!'
+            { ref: function ref(element) {
+                return _this9.gameEl = element;
+              }, className: 'hidden' },
+            React.createElement(GameFlowWindow, null),
+            React.createElement(PlayerWindow, { player: this.state.player }),
+            React.createElement(LogWindow, null)
           )
         );
       }
     }]);
 
-    return GameScreen;
+    return GameWindow;
   }(React.Component);
+
+  var GameFlowWindow = function GameFlowWindow() {
+    return React.createElement(
+      'div',
+      { className: 'game-flow-window' },
+      'Next turn'
+    );
+  };
+
+  var PlayerWindow = function PlayerWindow(_ref6) {
+    var player = _ref6.player;
+
+    return React.createElement(
+      'div',
+      { className: 'player-window' },
+      React.createElement(
+        'div',
+        { className: 'title' },
+        React.createElement(
+          'h1',
+          null,
+          player.name
+        ),
+        React.createElement(
+          'h3',
+          null,
+          'level: ',
+          player.level
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'status' },
+        React.createElement(
+          'h2',
+          null,
+          'HP: ',
+          player.hp
+        ),
+        React.createElement(
+          'h2',
+          null,
+          'AP: ',
+          player.ap
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'items' },
+        React.createElement(
+          'p',
+          null,
+          'Weapon demage: ',
+          player.weapon.demage
+        ),
+        React.createElement(
+          'p',
+          null,
+          'Armor defence: ',
+          player.armor.defence
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'stats' },
+        React.createElement(
+          'p',
+          null,
+          'strength: ',
+          player.str
+        ),
+        React.createElement(
+          'p',
+          null,
+          'dexterity: ',
+          player.dex
+        ),
+        React.createElement(
+          'p',
+          null,
+          'intellect: ',
+          player.int
+        ),
+        React.createElement(
+          'p',
+          null,
+          'luck: ',
+          player.luc
+        )
+      ),
+      React.createElement(Companion, { companion: player.companion })
+    );
+  };
+
+  var Companion = function Companion(_ref7) {
+    var companion = _ref7.companion;
+
+    return React.createElement(
+      'div',
+      { className: 'companion' },
+      React.createElement(
+        'h3',
+        null,
+        'Companion: ',
+        companion ? companion.name : "none"
+      )
+    );
+  };
+
+  var LogWindow = function LogWindow() {
+    return React.createElement(
+      'div',
+      { className: 'log-window' },
+      'Battle log'
+    );
+  };
+
+  var GameScreen = function GameScreen(_ref8) {
+    var character = _ref8.character;
+
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(GameTitle, { appliedClass: 'clickedTitle' }),
+      React.createElement(GameWindow, { player: character })
+    );
+  };
 
   ReactDOM.render(React.createElement(MainWindow, null), document.getElementById('root'));
 });

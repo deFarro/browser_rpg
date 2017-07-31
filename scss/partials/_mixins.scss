@@ -1,6 +1,6 @@
-@mixin flex-container($dir: row) {
+@mixin flex-container($dir: row, $just: center) {
   display: flex;
-  justify-content: center;
+  justify-content: $just;
   flex-direction: $dir;
   flex-wrap: wrap;
 }
@@ -15,4 +15,8 @@
 @mixin text-styling($size: 1em) {
   font-size: $size;
   font-family: Andale Mono, sans-serif;
+}
+
+@mixin game-window() {
+  border: 2px solid black;
 }

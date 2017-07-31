@@ -18,8 +18,9 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     switchToSetup() {
       this.setState({visible: 'setupScreen'});
     }
-    switchToGameScreen() {
-      this.setState({visible: 'gameScreen'})
+    switchToGameScreen(player) {
+      this.setState({character: player});
+      this.setState({visible: 'gameScreen'});
     }
     render() {
       if (this.state.visible === 'titleScreen') {
@@ -29,7 +30,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         return <SetupScreen switchToGame={this.switchToGameScreen.bind(this)}/>
       }
       else if (this.state.visible === 'gameScreen') {
-        return <GameScreen />
+        return <GameScreen character={this.state.character} />
       }
     }
   }
@@ -70,25 +71,32 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       super();
       this.switchToGame = props.doNext;
       this.state = {
-        statsRemain: 10,
-        name: '',
-        stats: [0, 0, 0, 0],
-        statNames: ["strength", "dexterity", "intellect", "luck"],
+        statsRemain: 0,
+        name: 'Jack',
+        // To add/remove stat to the setup form just change these two following arrays
+        stats: [10, 0, 0, 0],
+        statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       }
     }
     componentDidMount() {
-      setTimeout(() => {this.setState({className: 'setupScreen'})}, 0);
+      setTimeout(() => {
+        this.setState({className: 'setupScreen'});
+        // Add and remove 'hidden' to avoid overflow blinking
+        this.formEl.classList.remove('hidden');
+      }, 0);
     }
     enterName(event) {
       const cName = event.target.value;
-      if (/[\w ]{0,20}$/g.test(cName)) {
+      // Only numbers, space, underscore and english letters are eligible
+      if (/^[\w ]{0,20}$/.test(cName)) {
         this.setState({name: cName});
       }
       else {
         return;
       }
     }
+    //chooseGender(event) {}
     plus(index) {
       if(this.state.statsRemain === 0) {
         return;
@@ -116,8 +124,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     handleSubmit(event) {
       event.preventDefault();
       const character = {'name': this.state.name, 'stats': this.state.stats};
-      this.switchToGame();
-      console.log(character);
+      this.switchToGame(character);
     }
     componentDidUpdate() {
       this.checkIfReady();
@@ -130,11 +137,11 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       return (
         <div className={this.state.className}>
           <p>SETUP YOUR CHARACTER</p>
-          <form>
+          <form ref={element => this.formEl = element} className="hidden">
             <NameField onChange={this.enterName.bind(this)} value={this.state.name}/>
             {fieldSet}
+            <p className="remain-stats">STATS REMAIN: {this.state.statsRemain}</p>
           </form>
-          <p className="remain-stats">STATS REMAIN: {this.state.statsRemain}</p>
           <CreateCharButton onClick={this.handleSubmit.bind(this)} controlView={(element) => this.createButton = element}/>
         </div>
       )
@@ -145,6 +152,22 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     return (
       <div>
         <input className="name-field" type="text" placeholder="Name" onChange={onChange} value={value}></input>
+      </div>
+    )
+  }
+
+  // Feature not yet finalazed
+  const GenderField = () => {
+    return (
+      <div>
+      <label>male
+        <input className="gender-field" type="radio" name="gender" value="male" defaultChecked>
+        </input>
+        </label>
+        <label>female
+        <input className="gender-field" type="radio" name="gender" value="female">
+        </input>
+        </label>
       </div>
     )
   }
@@ -172,15 +195,95 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     )
   }
 
-  class GameScreen extends React.Component {
+  class GameWindow extends React.Component {
+    constructor(props) {
+      super(props);
+      this.playerStats = props;
+      this.weapons = makeWeaponsArray(15);
+      this.armors = makeArmorsArray(15);
+      this.state = {
+      game: new Game(),
+      player: new Player(props.player, this.weapons, this.armors),
+      className: 'setupScreen'
+      };
+    }
+    componentDidMount() {
+      setTimeout(() => {
+        this.setState({className: 'gameScreen'});
+      }, 0);
+      setTimeout(() => {
+        // Add and remove 'hidden' to avoid overflow blinking
+        this.gameEl.classList.add('fit-the-window');
+        this.gameEl.classList.remove('hidden');
+      }, 600);
+    }
     render() {
+      console.log(this.state.player);
       return (
-        <div>
-          <GameTitle appliedClass="clickedTitle" />
-          <div className="setupScreen">Поехали!</div>
+        <div className={this.state.className}>
+          <div ref={element => this.gameEl = element} className="hidden">
+          <GameFlowWindow />
+          <PlayerWindow player={this.state.player} />
+          <LogWindow />
+          </div>
         </div>
       )
     }
+  }
+
+  const GameFlowWindow = () => {
+    return (
+      <div className="game-flow-window">Next turn</div>
+    )
+  }
+
+  const PlayerWindow = ({player}) => {
+    return (
+      <div className="player-window">
+        <div className="title">
+          <h1>{player.name}</h1>
+          <h3>level: {player.level}</h3>
+        </div>
+        <div className="status">
+          <h2>HP: {player.hp}</h2>
+          <h2>AP: {player.ap}</h2>
+        </div>
+        <div className="items">
+          <p>Weapon demage: {player.weapon.demage}</p>
+          <p>Armor defence: {player.armor.defence}</p>
+        </div>
+        <div className="stats">
+          <p>strength: {player.str}</p>
+          <p>dexterity: {player.dex}</p>
+          <p>intellect: {player.int}</p>
+          <p>luck: {player.luc}</p>
+        </div>
+        <Companion companion={player.companion} />
+      </div>
+    )
+  }
+
+  const Companion = ({companion}) => {
+    return (
+      <div className="companion">
+        <h3>Companion: {companion ? companion.name : "none"}</h3>
+      </div>
+    )
+  }
+
+  const LogWindow = () => {
+    return (
+      <div className="log-window">Battle log</div>
+    )
+  }
+
+  const GameScreen = ({character}) => {
+    return (
+      <div>
+        <GameTitle appliedClass="clickedTitle" />
+        <GameWindow player={character} />
+      </div>
+    )
   }
 
   ReactDOM.render(<MainWindow />, document.getElementById('root'));
