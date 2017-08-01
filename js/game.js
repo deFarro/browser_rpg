@@ -33,23 +33,23 @@ class Character{
     return this.armor.defence + this.str;
   }
 // Универсальный метод для атаки
-  attack(target) {
+  attack(target, log) {
     let damage = this.attackRate - target.defenceRate;
     if (damage <= 0) {
       damage = 1;
     }
     target.hp -= damage;
     this.ap -= this.weapon.apCost;
-    console.log(`${this.name} (level ${this.level}) hit ${target.name} (level ${target.level}) by ${damage}, ${this.ap} AP left.`);
+    log.push(`${this.name} (level ${this.level}) hit ${target.name} (level ${target.level}) by ${damage}, ${this.ap} AP left.`);
     if (target.hp <= 0) {
       target.dead = true;
-      console.log(`${target.name} is dead.`);
+      log.push(`${target.name} is dead.`);
     }
   }
 }
 
 // Класс для игрока/игроков
-class Player extends Character{
+class Player extends Character {
   constructor(characterStats, weapons, armors) {
     super(characterStats);
     this.weapon = weapons[0];
@@ -61,13 +61,13 @@ class Player extends Character{
     this.items = ['Medkit', 'Ammo'];
   }
 // Методы для повышения характеристик и для потери, при понижении уровня
-  levelup(stat = 'str'){
+  levelup(stat = 'str') {
     console.log(`${this.name} got a new level.`)
     this.level++;
     this.levelups.push(stat);
     this[this.levelups[this.levelups.length - 1]]++;
   }
-  leveldown(){
+  leveldown() {
     console.log(`${this.name} lost a level.`)
     this.level--;
     if (this.levelups.length){
@@ -75,7 +75,7 @@ class Player extends Character{
     }
   }
 // Метод для экипирования предмета
-  equip(item, target){
+  equip(item, target) {
     if (target.str >= item.weight) {
       target[item.type] = item;
       console.log(`Item equiped.`);
@@ -130,8 +130,17 @@ class Player extends Character{
       console.log('Lock is too complicated.');
     }
   }
+  // Method to avoid battle
+  escape() {
+    if (rand(0, 19) > (this.dex + this.luc * 2)) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
 // Метод для восстановления здоровья, в зависимости от интеллекта. Без аргумента персонаж лечит себя
-  heal(target = this){
+  heal(target = this) {
     if (this.ap < 2){
       console.log('Not enought AP.');
       return false;
@@ -284,15 +293,13 @@ class Lock{
 }
 
 // Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
-var turn = 0;
-function startNextTurn(character){
-  console.log(`__________ Turn №${++turn} __________`);
-  let index = rand(0, 5);
+function startNextTurn(game) {
+  let index = rand(0, 2);
   switch (index){
     case 0:
     case 1:
     case 2:
-      battle(character, new Enemy());
+      return new Enemy(game.weapons, game.armors);
       break;
     case 3:
     case 4:
@@ -303,22 +310,27 @@ function startNextTurn(character){
   }
 }
 
-// Функция для вывода статуса боя
+// Function for generating short battle log
 function battleDisplay(player, enemy){
-  console.log(`${enemy.name} HP: ${enemy.hp} AP: ${enemy.ap}, ${player.name} HP: ${player.hp} AP: ${player.ap}`);
+  return `${enemy.name} HP: ${enemy.hp}/${enemy.maxHp} AP: ${enemy.ap}/${enemy.maxAp}, ${player.name} HP: ${player.hp}/${player.maxHp} AP: ${player.ap}/${player.maxAp}`;
 }
-// Функция боя
+// Function for a fight
 function battle(side1, side2){
+  let status = {};
+  status.fullLog = [];
   while (!side1.dead && !side2.dead){
-    battleRound(side1, side2);
+    battleRound(side1, side2, status.fullLog);
     if (side2.dead){
+      status.winner = side1;
       break;
     }
-    battleRound(side2, side1);
+    battleRound(side2, side1, status.fullLog);
   }
-  console.log(`Battle is over.`);
+  status.shortLog = battleDisplay(side1, side2);
+  status.fullLog.push(`Battle is over.`);
   battleDisplay(side1, side2);
   if (side1.dead){
+    status.winner = side2;
     side1.hp = side1.maxHp;
     side1.ap = side1.maxAp;
     if (side1.level > 0){
@@ -327,20 +339,24 @@ function battle(side1, side2){
     side1.dead = false;
     }
   else {
-    //side1.ap = side1.maxAp;
     side1.levelup();
   }
-  return side1;
+  return {
+    player: side1,
+    winner: status.winner.name,
+    log: status.shortLog,
+    fullLog: status.fullLog
+  };
 }
 
 // Функция для раунда боя (персонаж наносит урон, пока не кончатся AP)
-function battleRound(side1, side2){
+function battleRound(side1, side2, log){
   // Проверяем на наличие помощника у цели. Если есть, то решаем кого атаковать (у кого меньше HP)
   if (side2.companion && !side2.companion.dead) {
     side2 = side2.hp > side2.companion.hp ? side2.companion : side2;
   }
   while (side1.ap - side1.weapon.apCost >= 0){
-    side1.attack(side2);
+    side1.attack(side2, log);
     if (side2.dead){
       //side1.ap = side1.maxAp;
       return;

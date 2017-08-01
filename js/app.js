@@ -130,7 +130,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [15, 5, 0, 0],
+        stats: [10, 5, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       };
@@ -342,10 +342,17 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       _this7.playerStats = props;
       _this7.weapons = makeWeaponsArray(15);
       _this7.armors = makeArmorsArray(15);
+      _this7.screens = {
+        nextTurn: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
+        faceEnemy: React.createElement(FaceEnemy, { enemy: _this7.getActive.bind(_this7), startBattle: _this7.startBattle.bind(_this7), escape: _this7.escape.bind(_this7) }),
+        escaped: React.createElement(Escaped, { startTurn: _this7.startTurn.bind(_this7) }),
+        battleOver: React.createElement(BattleOver, { results: _this7.getActive.bind(_this7), startTurn: _this7.startTurn.bind(_this7) })
+      };
       _this7.state = {
-        gameScreens: [React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) })],
+        currentScreen: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
         game: new Game(),
         player: new Player(props.player, _this7.weapons, _this7.armors),
+        active: {},
         className: 'setupScreen'
       };
       return _this7;
@@ -368,7 +375,45 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     }, {
       key: 'startTurn',
       value: function startTurn() {
-        this.setState(battle(this.state.player, new Enemy(this.weapons, this.armors)));
+        var nextAction = startNextTurn(this);
+        this.state.active = nextAction;
+        if (nextAction instanceof Enemy) {
+          this.setState({ currentScreen: this.screens.faceEnemy });
+        }
+      }
+    }, {
+      key: 'getActive',
+      value: function getActive() {
+        return this.state.active;
+      }
+    }, {
+      key: 'escape',
+      value: function escape() {
+        if (this.state.player.escape()) {
+          this.setState({ currentScreen: this.screens.escaped });
+        } else {
+          this.startBattle('notescaped');
+        }
+      }
+    }, {
+      key: 'startBattle',
+      value: function startBattle() {
+        var fromEscape = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+
+        var battleResults = battle(this.state.player, this.state.active);
+        //this.setState(battleResults.player);
+        this.setState({ active: {
+            winner: battleResults.winner,
+            log: battleResults.log,
+            fullLog: battleResults.fullLog,
+            escaped: fromEscape
+          } });
+        this.setState({ currentScreen: this.screens.battleOver });
+      }
+    }, {
+      key: 'levelup',
+      value: function levelup(stat) {
+        this.state.player.levelup(stat);
       }
     }, {
       key: 'render',
@@ -386,10 +431,10 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
             React.createElement(
               GameFlowWindow,
               null,
-              this.state.gameScreens[0]
+              this.state.currentScreen
             ),
             React.createElement(PlayerWindow, { player: this.state.player }),
-            React.createElement(LogWindow, null)
+            React.createElement(LogWindow, { content: this.state.active.fullLog || null })
           )
         );
       }
@@ -418,12 +463,156 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var FaceEnemy = function FaceEnemy() {};
+  var FaceEnemy = function FaceEnemy(_ref8) {
+    var enemy = _ref8.enemy,
+        startBattle = _ref8.startBattle,
+        escape = _ref8.escape;
+
+    var currentEnemy = enemy();
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'h3',
+        null,
+        'Enemy on your way: ',
+        currentEnemy.name,
+        ' (level: ',
+        currentEnemy.level,
+        ')'
+      ),
+      React.createElement(
+        'h4',
+        null,
+        'Will you fight?'
+      ),
+      React.createElement(
+        'div',
+        { className: 'button-set' },
+        React.createElement(
+          'button',
+          { className: 'btn', onClick: startBattle },
+          'Fight'
+        ),
+        React.createElement(
+          'button',
+          { className: 'btn', onClick: escape },
+          'Escape'
+        )
+      )
+    );
+  };
+
+  var Escaped = function Escaped(_ref9) {
+    var startTurn = _ref9.startTurn;
+
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'h3',
+        null,
+        'You have escaped successfully'
+      ),
+      React.createElement(
+        'button',
+        { className: 'next-turn-button', onClick: startTurn },
+        'Next turn'
+      )
+    );
+  };
+
+  var BattleOver = function BattleOver(_ref10) {
+    var results = _ref10.results,
+        startTurn = _ref10.startTurn;
+
+    var battleResults = results();
+    return React.createElement(
+      'div',
+      { className: 'battle-over' },
+      React.createElement(
+        'h3',
+        null,
+        battleResults.escaped === 'notescaped' ? 'Escape failed' : null
+      ),
+      React.createElement(
+        'h3',
+        null,
+        'The battle is over'
+      ),
+      React.createElement(
+        'h4',
+        null,
+        battleResults.winner,
+        ' won!'
+      ),
+      React.createElement(
+        'h4',
+        null,
+        battleResults.log
+      ),
+      React.createElement(
+        'button',
+        { className: 'next-turn-button', onClick: startTurn },
+        'Next turn'
+      )
+    );
+  };
+
+  var LevelUp = function (_React$Component5) {
+    _inherits(LevelUp, _React$Component5);
+
+    function LevelUp(props) {
+      _classCallCheck(this, LevelUp);
+
+      var _this10 = _possibleConstructorReturn(this, (LevelUp.__proto__ || Object.getPrototypeOf(LevelUp)).call(this, props));
+
+      _this10.state = { value: "" };
+      return _this10;
+    }
+
+    _createClass(LevelUp, [{
+      key: 'render',
+      value: function render() {
+        return React.createElement(
+          'div',
+          null,
+          React.createElement(
+            'select',
+            null,
+            React.createElement(
+              'option',
+              { value: 'str' },
+              'strengt'
+            ),
+            React.createElement(
+              'option',
+              { value: 'dex' },
+              'dexterity'
+            ),
+            React.createElement(
+              'option',
+              { value: 'int' },
+              'intellect'
+            ),
+            React.createElement(
+              'option',
+              { value: 'luc' },
+              'luck'
+            )
+          )
+        );
+      }
+    }]);
+
+    return LevelUp;
+  }(React.Component);
+
   var FaceContainer = function FaceContainer() {};
   var FaceNPC = function FaceNPC() {};
 
-  var PlayerWindow = function PlayerWindow(_ref8) {
-    var player = _ref8.player;
+  var PlayerWindow = function PlayerWindow(_ref11) {
+    var player = _ref11.player;
 
     return React.createElement(
       'div',
@@ -507,8 +696,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var Companion = function Companion(_ref9) {
-    var companion = _ref9.companion;
+  var Companion = function Companion(_ref12) {
+    var companion = _ref12.companion;
 
     return React.createElement(
       'div',
@@ -522,16 +711,33 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var LogWindow = function LogWindow() {
+  var LogWindow = function LogWindow(_ref13) {
+    var content = _ref13.content;
+
     return React.createElement(
       'div',
       { className: 'log-window' },
-      'Battle log'
+      React.createElement(
+        'h4',
+        null,
+        'Battle log'
+      ),
+      React.createElement(
+        'div',
+        null,
+        content === null ? null : content.map(function (line, index) {
+          return React.createElement(
+            'p',
+            { key: index },
+            line
+          );
+        })
+      )
     );
   };
 
-  var GameScreen = function GameScreen(_ref10) {
-    var character = _ref10.character;
+  var GameScreen = function GameScreen(_ref14) {
+    var character = _ref14.character;
 
     return React.createElement(
       'div',

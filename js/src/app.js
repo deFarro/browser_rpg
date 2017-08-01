@@ -74,7 +74,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [15, 5, 0, 0],
+        stats: [10, 5, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       }
@@ -201,10 +201,17 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       this.playerStats = props;
       this.weapons = makeWeaponsArray(15);
       this.armors = makeArmorsArray(15);
+      this.screens = {
+        nextTurn: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
+        faceEnemy: <FaceEnemy enemy={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} escape={this.escape.bind(this)}/>,
+        escaped: <Escaped startTurn={this.startTurn.bind(this)} />,
+        battleOver: <BattleOver results={this.getActive.bind(this)} startTurn={this.startTurn.bind(this)} />
+      };
       this.state = {
-      gameScreens: [<NextTurnButton startTurn={this.startTurn.bind(this)} />],
+      currentScreen: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
       game: new Game(),
       player: new Player(props.player, this.weapons, this.armors),
+      active: {},
       className: 'setupScreen'
       };
     }
@@ -219,17 +226,47 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       }, 600);
     }
     startTurn() {
-      this.setState(battle(this.state.player, new Enemy(this.weapons, this.armors)));
+      const nextAction = startNextTurn(this);
+      this.state.active = nextAction;
+      if (nextAction instanceof Enemy) {
+        this.setState({currentScreen: this.screens.faceEnemy})
+      }
+
+    }
+    getActive() {
+      return this.state.active;
+    }
+    escape() {
+      if (this.state.player.escape()) {
+        this.setState({currentScreen: this.screens.escaped});
+      }
+      else {
+        this.startBattle('notescaped');
+      }
+    }
+    startBattle(fromEscape = "") {
+      const battleResults = battle(this.state.player, this.state.active);
+      //this.setState(battleResults.player);
+      this.setState({active: {
+        winner: battleResults.winner,
+        log: battleResults.log,
+        fullLog: battleResults.fullLog,
+        escaped: fromEscape
+      }});
+      this.setState({currentScreen: this.screens.battleOver});
+    }
+    levelup(stat) {
+      this.state.player.levelup(stat);
     }
     render() {
       return (
         <div className={this.state.className}>
           <div ref={element => this.gameEl = element} className="hidden">
           <GameFlowWindow>
-            {this.state.gameScreens[0]}
+            {this.state.currentScreen}
           </GameFlowWindow>
           <PlayerWindow player={this.state.player} />
-          <LogWindow />
+          <LogWindow content={this.state.active.fullLog || null} />
           </div>
         </div>
       )
@@ -248,7 +285,61 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     return <button className="next-turn-button" onClick={startTurn}>Next turn</button>
   };
 
-  const FaceEnemy = () => {};
+  const FaceEnemy = ({enemy, startBattle, escape}) => {
+    const currentEnemy = enemy();
+    return (
+      <div>
+        <h3>Enemy on your way: {currentEnemy.name} (level: {currentEnemy.level})</h3>
+        <h4>Will you fight?</h4>
+        <div className="button-set">
+          <button className="btn" onClick={startBattle}>Fight</button>
+          <button className="btn" onClick={escape}>Escape</button>
+        </div>
+      </div>
+    )
+  };
+
+  const Escaped = ({startTurn}) => {
+    return (
+      <div>
+        <h3>You have escaped successfully</h3>
+        <button className="next-turn-button" onClick={startTurn}>Next turn</button>
+      </div>
+    )
+  }
+
+  const BattleOver = ({results, startTurn}) => {
+    const battleResults = results();
+    return (
+      <div className="battle-over">
+        <h3>{battleResults.escaped === 'notescaped' ? 'Escape failed' : null}</h3>
+        <h3>The battle is over</h3>
+        <h4>{battleResults.winner} won!</h4>
+        <h4>{battleResults.log}</h4>
+        <button className="next-turn-button" onClick={startTurn}>Next turn</button>
+      </div>
+    )
+  }
+
+  class LevelUp extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = {value: ""}
+    }
+    render() {
+      return (
+        <div>
+          <select>
+            <option value="str">strengt</option>
+            <option value="dex">dexterity</option>
+            <option value="int">intellect</option>
+            <option value="luc">luck</option>
+          </select>
+        </div>
+      )
+    }
+  }
+
   const FaceContainer = () => {};
   const FaceNPC = () => {};
 
@@ -286,9 +377,14 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     )
   }
 
-  const LogWindow = () => {
+  const LogWindow = ({content}) => {
     return (
-      <div className="log-window">Battle log</div>
+      <div className="log-window">
+        <h4>Battle log</h4>
+        <div>
+          {content === null ? null : content.map((line, index) => <p key={index}>{line}</p>)}
+        </div>
+      </div>
     )
   }
 

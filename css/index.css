@@ -43,7 +43,7 @@ body {
   overflow: hidden;
   height: 360px;
   cursor: default;
-  transition: height 2s ease-out; }
+  transition: height 1.5s ease-out; }
   .setupScreen p:first-child {
     margin: 0.5em; }
   .setupScreen div {
@@ -140,15 +140,19 @@ body {
   border-radius: 5px 0 0 0;
   float: left;
   width: 60%;
-  height: 80%; }
+  height: 70%;
+  position: relative; }
+
+.battle-over h3:first-child {
+  text-decoration: underline; }
 
 .player-window {
   border: 2px solid black;
-  border-radius: 0 5px 0 0;
+  border-radius: 0 5px 5px 0;
   position: relative;
   float: right;
   width: 40%;
-  height: 80%; }
+  height: 100%; }
   .player-window .title {
     border-bottom: 1px solid black; }
     .player-window .title h1 {
@@ -173,7 +177,7 @@ body {
   .player-window .stats p {
     margin: 0.5em; }
   .player-window .companion {
-    height: 25%;
+    height: 40%;
     width: 100%;
     position: absolute;
     bottom: 0px;
@@ -181,26 +185,48 @@ body {
 
 .log-window {
   border: 2px solid black;
-  border-radius: 0 0 5px 5px;
-  clear: both;
-  width: 100%;
-  height: 20%; }
+  border-radius: 0 0 0 5px;
+  width: 60%;
+  height: 30%;
+  overflow-y: scroll; }
+  .log-window h4 {
+    border-bottom: 1px solid black; }
+  .log-window h4,
+  .log-window p {
+    margin: 0; }
 
 .next-turn-button {
   width: 10em;
   height: 2em;
-  margin-top: 30%;
   text-transform: uppercase;
   color: white;
   background-color: black;
   border-radius: 10px;
   border: none;
-  cursor: pointer; }
+  cursor: pointer;
+  position: absolute;
+  bottom: 20px;
+  left: 37%; }
   .next-turn-button:focus {
     outline: none; }
-  .next-turn-button:active {
-    position: relative;
-    top: 1px; }
+
+.button-set {
+  position: absolute;
+  bottom: 20px;
+  left: 18%; }
+
+.btn {
+  width: 10em;
+  height: 2em;
+  text-transform: uppercase;
+  color: white;
+  background-color: black;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  margin: 0 1em; }
+  .btn:focus {
+    outline: none; }
 
 /* Active classes ---------------------- */
 .hidden {

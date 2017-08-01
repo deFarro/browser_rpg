@@ -24,7 +24,6 @@
 @mixin button {
   width: 10em;
   height: 2em;
-  margin-top: 30%;
   text-transform: uppercase;
   color: white;
   background-color: black;
@@ -33,9 +32,5 @@
   cursor: pointer;
   &:focus {
     outline: none;
-  }
-  &:active {
-    position: relative;
-    top: 1px;
   }
 }

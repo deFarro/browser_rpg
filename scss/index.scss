@@ -52,7 +52,7 @@ body {
   overflow: hidden;
   height: 360px;
   cursor: default;
-  transition: height 2s ease-out;
+  transition: height 1.5s ease-out;
   p:first-child {
     margin: 0.5em;
   }
@@ -156,16 +156,23 @@ body {
   border-radius: 5px 0 0 0;
   float: left;
   width: 60%;
-  height: 80%;
+  height: 70%;
+  position: relative;
+}
+
+.battle-over {
+  h3:first-child {
+    text-decoration: underline;
+  }
 }
 
 .player-window {
   @include game-window();
-  border-radius: 0 5px 0 0;
+  border-radius: 0 5px 5px 0;
   position: relative;
   float: right;
   width: 40%;
-  height: 80%;
+  height: 100%;
   .title {
     border-bottom: 1px solid black;
     h1 {
@@ -193,7 +200,7 @@ body {
     }
   }
   .companion {
-    height: 25%;
+    height: 40%;
     width: 100%;
     position: absolute;
     bottom: 0px;
@@ -203,16 +210,36 @@ body {
 
 .log-window {
   @include game-window();
-  border-radius: 0 0 5px 5px;
-  clear:both;
-  width: 100%;
-  height: 20%;
+  border-radius: 0 0 0 5px;
+  width: 60%;
+  height: 30%;
+  overflow-y: scroll;
+  h4 {
+    border-bottom: 1px solid black;
+  }
+  h4,
+  p {
+    margin: 0;
+  }
 }
 
 .next-turn-button {
   @include button;
+  position: absolute;
+  bottom: 20px;
+  left: 37%;
 }
 
+.button-set {
+  position: absolute;
+  bottom: 20px;
+  left: 18%;
+}
+
+.btn {
+  @include button;
+  margin: 0 1em;
+}
 
 
 
@@ -223,6 +250,3 @@ body {
 .hidden {
   opacity: 0;
 }
-// .unhide {
-//   opacity: 1;
-// }
