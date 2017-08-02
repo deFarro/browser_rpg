@@ -473,9 +473,13 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     var startTurn = _ref7.startTurn;
 
     return React.createElement(
-      'button',
-      { className: 'next-turn-button', onClick: startTurn },
-      'Next turn'
+      'div',
+      { className: 'btn-wrapper' },
+      React.createElement(
+        'button',
+        { className: 'next-turn-button', onClick: startTurn },
+        'Next turn'
+      )
     );
   };
 
@@ -504,7 +508,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       ),
       React.createElement(
         'div',
-        { className: 'button-set' },
+        { className: 'btn-wrapper' },
         React.createElement(
           'button',
           { className: 'btn', onClick: startBattle },
@@ -570,9 +574,13 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         battleResults.log
       ),
       React.createElement(
-        'button',
-        { className: 'next-turn-button', onClick: battleResults.winner === player() ? levelUp : startTurn },
-        battleResults.winner === player() ? 'Raise a stat' : 'Next turn'
+        'div',
+        { className: 'btn-wrapper' },
+        React.createElement(
+          'button',
+          { className: 'next-turn-button', onClick: battleResults.winner === player() ? levelUp : startTurn },
+          battleResults.winner === player() ? 'Raise a stat' : 'Next turn'
+        )
       )
     );
   };
@@ -585,8 +593,13 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       'div',
       null,
       React.createElement(
+        'h3',
+        null,
+        'Which stat would you like to raise?'
+      ),
+      React.createElement(
         'select',
-        { ref: trackValue },
+        { className: 'level-up-stat', ref: trackValue },
         React.createElement(
           'option',
           { value: 'str' },
@@ -609,9 +622,13 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         )
       ),
       React.createElement(
-        'button',
-        { className: 'btn', onClick: raise },
-        'Raise'
+        'div',
+        { className: 'btn-wrapper' },
+        React.createElement(
+          'button',
+          { className: 'btn', onClick: raise },
+          'Raise'
+        )
       )
     );
   };

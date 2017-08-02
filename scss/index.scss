@@ -5,7 +5,7 @@
 }
 
 body {
-  font-family: Andale Mono, sans-serif;
+  font-family: Andale Mono;
   width: 100vw;
   height: 100vh;
   background: linear-gradient(white, transparent 5%),
@@ -153,10 +153,11 @@ body {
 
 .game-flow-window {
   @include game-window();
-  border-radius: 5px 0 0 0;
   float: left;
   width: 60%;
   height: 70%;
+  padding-top: 3em;
+  border-radius: 5px 0 0 0;
   position: relative;
 }
 
@@ -225,9 +226,10 @@ body {
 
 .next-turn-button {
   @include button;
-  position: absolute;
-  bottom: 20px;
-  left: 37%;
+  display: inline;
+  // position: absolute;
+  // bottom: 20px;
+  // left: 36%;
 }
 
 .button-set {
@@ -241,9 +243,22 @@ body {
   margin: 0 1em;
 }
 
+.level-up-stat {
+  display: block;
+  margin: 3em auto;
+  background: white;
+  outline: none;
+  border: 2px solid black;
+  font-family: Andale Mono;
+  font-size: 1.5em;
+}
 
-
-
+.btn-wrapper {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  bottom: 20px;
+}
 
 /* Active classes ---------------------- */
 

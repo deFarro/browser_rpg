@@ -292,7 +292,11 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
   }
 
   const NextTurnButton = ({startTurn}) => {
-    return <button className="next-turn-button" onClick={startTurn}>Next turn</button>
+    return (
+    <div className="btn-wrapper">
+    <button className="next-turn-button" onClick={startTurn}>Next turn</button>
+    </div>
+    )
   };
 
   const FaceEnemy = ({enemy, startBattle, escape}) => {
@@ -301,7 +305,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       <div>
         <h3>Enemy on your way: {currentEnemy.name} (level: {currentEnemy.level})</h3>
         <h4>Will you fight?</h4>
-        <div className="button-set">
+        <div className="btn-wrapper">
           <button className="btn" onClick={startBattle}>Fight</button>
           <button className="btn" onClick={escape}>Escape</button>
         </div>
@@ -326,7 +330,9 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         <h3>The battle is over</h3>
         <h4>{battleResults.winner.name} won!</h4>
         <h4>{battleResults.log}</h4>
-        <button className="next-turn-button" onClick={battleResults.winner === player() ? levelUp : startTurn}>{battleResults.winner === player() ? 'Raise a stat' : 'Next turn'}</button>
+        <div className="btn-wrapper">
+          <button className="next-turn-button" onClick={battleResults.winner === player() ? levelUp : startTurn}>{battleResults.winner === player() ? 'Raise a stat' : 'Next turn'}</button>
+        </div>
       </div>
     )
   }
@@ -334,13 +340,16 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
   const LevelUp = ({raise, trackValue}) => {
     return (
       <div>
-        <select ref={trackValue}>
+        <h3>Which stat would you like to raise?</h3>
+        <select className="level-up-stat" ref={trackValue}>
           <option value="str">strength</option>
           <option value="dex">dexterity</option>
           <option value="int">intellect</option>
           <option value="luc">luck</option>
         </select>
-        <button className="btn" onClick={raise}>Raise</button>
+        <div className="btn-wrapper">
+          <button className="btn" onClick={raise}>Raise</button>
+        </div>
       </div>
     )
   }

@@ -2,7 +2,7 @@
   box-sizing: border-box; }
 
 body {
-  font-family: Andale Mono, sans-serif;
+  font-family: Andale Mono;
   width: 100vw;
   height: 100vh;
   background: linear-gradient(white, transparent 5%), linear-gradient(0deg, black, transparent 5%), url("../img/bg_main.jpg");
@@ -137,10 +137,11 @@ body {
 
 .game-flow-window {
   border: 2px solid black;
-  border-radius: 5px 0 0 0;
   float: left;
   width: 60%;
   height: 70%;
+  padding-top: 3em;
+  border-radius: 5px 0 0 0;
   position: relative; }
 
 .battle-over h3:first-child {
@@ -198,15 +199,14 @@ body {
 .next-turn-button {
   width: 10em;
   height: 2em;
+  font-family: Andale Mono;
   text-transform: uppercase;
   color: white;
   background-color: black;
-  border-radius: 10px;
+  border-radius: 5px;
   border: none;
   cursor: pointer;
-  position: absolute;
-  bottom: 20px;
-  left: 37%; }
+  display: inline; }
   .next-turn-button:focus {
     outline: none; }
 
@@ -218,15 +218,31 @@ body {
 .btn {
   width: 10em;
   height: 2em;
+  font-family: Andale Mono;
   text-transform: uppercase;
   color: white;
   background-color: black;
-  border-radius: 10px;
+  border-radius: 5px;
   border: none;
   cursor: pointer;
   margin: 0 1em; }
   .btn:focus {
     outline: none; }
+
+.level-up-stat {
+  display: block;
+  margin: 3em auto;
+  background: white;
+  outline: none;
+  border: 2px solid black;
+  font-family: Andale Mono;
+  font-size: 1.5em; }
+
+.btn-wrapper {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  bottom: 20px; }
 
 /* Active classes ---------------------- */
 .hidden {
