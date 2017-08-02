@@ -130,7 +130,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [10, 5, 0, 0],
+        stats: [100, 0, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       };
@@ -346,7 +346,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         nextTurn: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
         faceEnemy: React.createElement(FaceEnemy, { enemy: _this7.getActive.bind(_this7), startBattle: _this7.startBattle.bind(_this7), escape: _this7.escape.bind(_this7) }),
         escaped: React.createElement(Escaped, { startTurn: _this7.startTurn.bind(_this7) }),
-        battleOver: React.createElement(BattleOver, { results: _this7.getActive.bind(_this7), startTurn: _this7.startTurn.bind(_this7) })
+        battleOver: React.createElement(BattleOver, { results: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), startTurn: _this7.startTurn.bind(_this7), levelUp: _this7.levelUp.bind(_this7) }),
+        levelUp: React.createElement(LevelUp, { raise: _this7.raiseStat.bind(_this7), trackValue: _this7.trackValue.bind(_this7) })
       };
       _this7.state = {
         currentScreen: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
@@ -387,6 +388,11 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         return this.state.active;
       }
     }, {
+      key: 'getPlayer',
+      value: function getPlayer() {
+        return this.state.player;
+      }
+    }, {
       key: 'escape',
       value: function escape() {
         if (this.state.player.escape()) {
@@ -401,7 +407,6 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         var fromEscape = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
 
         var battleResults = battle(this.state.player, this.state.active);
-        //this.setState(battleResults.player);
         this.setState({ active: {
             winner: battleResults.winner,
             log: battleResults.log,
@@ -411,9 +416,20 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         this.setState({ currentScreen: this.screens.battleOver });
       }
     }, {
-      key: 'levelup',
-      value: function levelup(stat) {
-        this.state.player.levelup(stat);
+      key: 'levelUp',
+      value: function levelUp() {
+        this.setState({ currentScreen: this.screens.levelUp });
+      }
+    }, {
+      key: 'trackValue',
+      value: function trackValue(element) {
+        this.statUpdate = element;
+      }
+    }, {
+      key: 'raiseStat',
+      value: function raiseStat() {
+        this.state.player.levelup(this.statUpdate.value);
+        this.setState({ currentScreen: this.screens.nextTurn });
       }
     }, {
       key: 'render',
@@ -524,7 +540,9 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
 
   var BattleOver = function BattleOver(_ref10) {
     var results = _ref10.results,
-        startTurn = _ref10.startTurn;
+        player = _ref10.player,
+        startTurn = _ref10.startTurn,
+        levelUp = _ref10.levelUp;
 
     var battleResults = results();
     return React.createElement(
@@ -543,7 +561,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       React.createElement(
         'h4',
         null,
-        battleResults.winner,
+        battleResults.winner.name,
         ' won!'
       ),
       React.createElement(
@@ -553,66 +571,56 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       ),
       React.createElement(
         'button',
-        { className: 'next-turn-button', onClick: startTurn },
-        'Next turn'
+        { className: 'next-turn-button', onClick: battleResults.winner === player() ? levelUp : startTurn },
+        battleResults.winner === player() ? 'Raise a stat' : 'Next turn'
       )
     );
   };
 
-  var LevelUp = function (_React$Component5) {
-    _inherits(LevelUp, _React$Component5);
+  var LevelUp = function LevelUp(_ref11) {
+    var raise = _ref11.raise,
+        trackValue = _ref11.trackValue;
 
-    function LevelUp(props) {
-      _classCallCheck(this, LevelUp);
-
-      var _this10 = _possibleConstructorReturn(this, (LevelUp.__proto__ || Object.getPrototypeOf(LevelUp)).call(this, props));
-
-      _this10.state = { value: "" };
-      return _this10;
-    }
-
-    _createClass(LevelUp, [{
-      key: 'render',
-      value: function render() {
-        return React.createElement(
-          'div',
-          null,
-          React.createElement(
-            'select',
-            null,
-            React.createElement(
-              'option',
-              { value: 'str' },
-              'strengt'
-            ),
-            React.createElement(
-              'option',
-              { value: 'dex' },
-              'dexterity'
-            ),
-            React.createElement(
-              'option',
-              { value: 'int' },
-              'intellect'
-            ),
-            React.createElement(
-              'option',
-              { value: 'luc' },
-              'luck'
-            )
-          )
-        );
-      }
-    }]);
-
-    return LevelUp;
-  }(React.Component);
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'select',
+        { ref: trackValue },
+        React.createElement(
+          'option',
+          { value: 'str' },
+          'strength'
+        ),
+        React.createElement(
+          'option',
+          { value: 'dex' },
+          'dexterity'
+        ),
+        React.createElement(
+          'option',
+          { value: 'int' },
+          'intellect'
+        ),
+        React.createElement(
+          'option',
+          { value: 'luc' },
+          'luck'
+        )
+      ),
+      React.createElement(
+        'button',
+        { className: 'btn', onClick: raise },
+        'Raise'
+      )
+    );
+  };
 
   var FaceContainer = function FaceContainer() {};
   var FaceNPC = function FaceNPC() {};
 
-  var PlayerWindow = function PlayerWindow(_ref11) {
-    var player = _ref11.player;
+  var PlayerWindow = function PlayerWindow(_ref12) {
+    var player = _ref12.player;
 
     return React.createElement(
       'div',
@@ -696,8 +704,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var Companion = function Companion(_ref12) {
-    var companion = _ref12.companion;
+  var Companion = function Companion(_ref13) {
+    var companion = _ref13.companion;
 
     return React.createElement(
       'div',
@@ -711,8 +719,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var LogWindow = function LogWindow(_ref13) {
-    var content = _ref13.content;
+  var LogWindow = function LogWindow(_ref14) {
+    var content = _ref14.content;
 
     return React.createElement(
       'div',
@@ -736,8 +744,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var GameScreen = function GameScreen(_ref14) {
-    var character = _ref14.character;
+  var GameScreen = function GameScreen(_ref15) {
+    var character = _ref15.character;
 
     return React.createElement(
       'div',

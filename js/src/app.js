@@ -74,7 +74,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [10, 5, 0, 0],
+        stats: [100, 0, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       }
@@ -205,7 +205,8 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         nextTurn: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
         faceEnemy: <FaceEnemy enemy={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} escape={this.escape.bind(this)}/>,
         escaped: <Escaped startTurn={this.startTurn.bind(this)} />,
-        battleOver: <BattleOver results={this.getActive.bind(this)} startTurn={this.startTurn.bind(this)} />
+        battleOver: <BattleOver results={this.getActive.bind(this)} player={this.getPlayer.bind(this)} startTurn={this.startTurn.bind(this)} levelUp={this.levelUp.bind(this)} />,
+        levelUp: <LevelUp raise={this.raiseStat.bind(this)} trackValue={this.trackValue.bind(this)} />
       };
       this.state = {
       currentScreen: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
@@ -236,6 +237,9 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     getActive() {
       return this.state.active;
     }
+    getPlayer() {
+      return this.state.player;
+    }
     escape() {
       if (this.state.player.escape()) {
         this.setState({currentScreen: this.screens.escaped});
@@ -246,7 +250,6 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     }
     startBattle(fromEscape = "") {
       const battleResults = battle(this.state.player, this.state.active);
-      //this.setState(battleResults.player);
       this.setState({active: {
         winner: battleResults.winner,
         log: battleResults.log,
@@ -255,8 +258,15 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       }});
       this.setState({currentScreen: this.screens.battleOver});
     }
-    levelup(stat) {
-      this.state.player.levelup(stat);
+    levelUp() {
+      this.setState({currentScreen: this.screens.levelUp});
+    }
+    trackValue(element) {
+      this.statUpdate = element;
+    }
+    raiseStat() {
+      this.state.player.levelup(this.statUpdate.value);
+      this.setState({currentScreen: this.screens.nextTurn});
     }
     render() {
       return (
@@ -308,36 +318,31 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     )
   }
 
-  const BattleOver = ({results, startTurn}) => {
+  const BattleOver = ({results, player, startTurn, levelUp}) => {
     const battleResults = results();
     return (
       <div className="battle-over">
         <h3>{battleResults.escaped === 'notescaped' ? 'Escape failed' : null}</h3>
         <h3>The battle is over</h3>
-        <h4>{battleResults.winner} won!</h4>
+        <h4>{battleResults.winner.name} won!</h4>
         <h4>{battleResults.log}</h4>
-        <button className="next-turn-button" onClick={startTurn}>Next turn</button>
+        <button className="next-turn-button" onClick={battleResults.winner === player() ? levelUp : startTurn}>{battleResults.winner === player() ? 'Raise a stat' : 'Next turn'}</button>
       </div>
     )
   }
 
-  class LevelUp extends React.Component {
-    constructor(props) {
-      super(props);
-      this.state = {value: ""}
-    }
-    render() {
-      return (
-        <div>
-          <select>
-            <option value="str">strengt</option>
-            <option value="dex">dexterity</option>
-            <option value="int">intellect</option>
-            <option value="luc">luck</option>
-          </select>
-        </div>
-      )
-    }
+  const LevelUp = ({raise, trackValue}) => {
+    return (
+      <div>
+        <select ref={trackValue}>
+          <option value="str">strength</option>
+          <option value="dex">dexterity</option>
+          <option value="int">intellect</option>
+          <option value="luc">luck</option>
+        </select>
+        <button className="btn" onClick={raise}>Raise</button>
+      </div>
+    )
   }
 
   const FaceContainer = () => {};

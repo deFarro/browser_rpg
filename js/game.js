@@ -60,9 +60,8 @@ class Player extends Character {
     this.levelups = [];
     this.items = ['Medkit', 'Ammo'];
   }
-// Методы для повышения характеристик и для потери, при понижении уровня
-  levelup(stat = 'str') {
-    console.log(`${this.name} got a new level.`)
+// Methods for raising stats and for loosing them after death
+  levelup(stat) {
     this.level++;
     this.levelups.push(stat);
     this[this.levelups[this.levelups.length - 1]]++;
@@ -329,7 +328,7 @@ function battle(side1, side2){
   status.shortLog = battleDisplay(side1, side2);
   status.fullLog.push(`Battle is over.`);
   battleDisplay(side1, side2);
-  if (side1.dead){
+  if (side1.dead) {
     status.winner = side2;
     side1.hp = side1.maxHp;
     side1.ap = side1.maxAp;
@@ -337,13 +336,10 @@ function battle(side1, side2){
       side1.leveldown();
     }
     side1.dead = false;
-    }
-  else {
-    side1.levelup();
   }
   return {
     player: side1,
-    winner: status.winner.name,
+    winner: status.winner,
     log: status.shortLog,
     fullLog: status.fullLog
   };
