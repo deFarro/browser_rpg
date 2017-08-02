@@ -345,7 +345,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       _this7.screens = {
         nextTurn: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
         faceEnemy: React.createElement(FaceEnemy, { enemy: _this7.getActive.bind(_this7), startBattle: _this7.startBattle.bind(_this7), escape: _this7.escape.bind(_this7) }),
-        escaped: React.createElement(Escaped, { startTurn: _this7.startTurn.bind(_this7) }),
+        escaped: React.createElement(Escaped, { returnToStart: _this7.returnToStart.bind(_this7) }),
         battleOver: React.createElement(BattleOver, { results: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), startTurn: _this7.startTurn.bind(_this7), levelUp: _this7.levelUp.bind(_this7) }),
         levelUp: React.createElement(LevelUp, { raise: _this7.raiseStat.bind(_this7), trackValue: _this7.trackValue.bind(_this7) })
       };
@@ -432,6 +432,11 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         this.setState({ currentScreen: this.screens.nextTurn });
       }
     }, {
+      key: 'returnToStart',
+      value: function returnToStart() {
+        this.setState({ currentScreen: this.screens.nextTurn });
+      }
+    }, {
       key: 'render',
       value: function render() {
         var _this9 = this;
@@ -474,11 +479,21 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
 
     return React.createElement(
       'div',
-      { className: 'btn-wrapper' },
+      { className: 'image-screen' },
       React.createElement(
-        'button',
-        { className: 'next-turn-button', onClick: startTurn },
-        'Next turn'
+        'h3',
+        null,
+        'There is a shack in front of you'
+      ),
+      React.createElement('img', { className: 'image', src: '../img/shack.jpg', alt: 'shack' }),
+      React.createElement(
+        'div',
+        { className: 'btn-wrapper' },
+        React.createElement(
+          'button',
+          { className: 'next-turn-button', onClick: startTurn },
+          'Step in'
+        )
       )
     );
   };
@@ -491,7 +506,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     var currentEnemy = enemy();
     return React.createElement(
       'div',
-      null,
+      { className: 'image-screen' },
       React.createElement(
         'h3',
         null,
@@ -501,6 +516,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         currentEnemy.level,
         ')'
       ),
+      React.createElement('img', { className: 'image', src: '../img/robot.jpg', alt: 'robot' }),
       React.createElement(
         'h4',
         null,
@@ -524,7 +540,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
   };
 
   var Escaped = function Escaped(_ref9) {
-    var startTurn = _ref9.startTurn;
+    var returnToStart = _ref9.returnToStart;
 
     return React.createElement(
       'div',
@@ -535,9 +551,13 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         'You have escaped successfully'
       ),
       React.createElement(
-        'button',
-        { className: 'next-turn-button', onClick: startTurn },
-        'Next turn'
+        'div',
+        { className: 'btn-wrapper' },
+        React.createElement(
+          'button',
+          { className: 'next-turn-button', onClick: returnToStart },
+          'Next turn'
+        )
       )
     );
   };
@@ -551,22 +571,27 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     var battleResults = results();
     return React.createElement(
       'div',
-      { className: 'battle-over' },
+      null,
       React.createElement(
         'h3',
-        null,
+        { className: 'underline' },
         battleResults.escaped === 'notescaped' ? 'Escape failed' : null
-      ),
-      React.createElement(
-        'h3',
-        null,
-        'The battle is over'
       ),
       React.createElement(
         'h4',
         null,
+        'The battle is over'
+      ),
+      React.createElement(
+        'h3',
+        null,
         battleResults.winner.name,
         ' won!'
+      ),
+      React.createElement(
+        'h4',
+        { className: 'underline' },
+        'Battle results:'
       ),
       React.createElement(
         'h4',
@@ -627,7 +652,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         React.createElement(
           'button',
           { className: 'btn', onClick: raise },
-          'Raise'
+          'Confirm'
         )
       )
     );
@@ -766,7 +791,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
 
     return React.createElement(
       'div',
-      null,
+      { className: 'fullscreen' },
       React.createElement(GameTitle, { appliedClass: 'clickedTitle' }),
       React.createElement(GameWindow, { player: character })
     );

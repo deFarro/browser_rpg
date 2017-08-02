@@ -130,9 +130,14 @@ body {
   }
 }
 
+.fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
+
 .gameScreen {
   width: 80%;
-  height: 500px;
+  height: 80%;
   margin: 0 auto;
   color: black;
   background-color: white;
@@ -161,10 +166,20 @@ body {
   position: relative;
 }
 
-.battle-over {
-  h3:first-child {
-    text-decoration: underline;
+.image-screen {
+  margin-top: -3em;
+  h4 {
+    margin: 1em;
   }
+}
+
+.image {
+  width: 65%;
+  margin: 0 auto;
+}
+
+.underline {
+  text-decoration: underline;
 }
 
 .player-window {

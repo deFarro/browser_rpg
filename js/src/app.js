@@ -204,7 +204,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       this.screens = {
         nextTurn: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
         faceEnemy: <FaceEnemy enemy={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} escape={this.escape.bind(this)}/>,
-        escaped: <Escaped startTurn={this.startTurn.bind(this)} />,
+        escaped: <Escaped returnToStart={this.returnToStart.bind(this)} />,
         battleOver: <BattleOver results={this.getActive.bind(this)} player={this.getPlayer.bind(this)} startTurn={this.startTurn.bind(this)} levelUp={this.levelUp.bind(this)} />,
         levelUp: <LevelUp raise={this.raiseStat.bind(this)} trackValue={this.trackValue.bind(this)} />
       };
@@ -268,6 +268,9 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       this.state.player.levelup(this.statUpdate.value);
       this.setState({currentScreen: this.screens.nextTurn});
     }
+    returnToStart() {
+      this.setState({currentScreen: this.screens.nextTurn});
+    }
     render() {
       return (
         <div className={this.state.className}>
@@ -293,17 +296,22 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
 
   const NextTurnButton = ({startTurn}) => {
     return (
-    <div className="btn-wrapper">
-    <button className="next-turn-button" onClick={startTurn}>Next turn</button>
-    </div>
+      <div className="image-screen">
+        <h3>There is a shack in front of you</h3>
+        <img className="image" src= "../img/shack.jpg" alt="shack" />
+        <div className="btn-wrapper">
+          <button className="next-turn-button" onClick={startTurn}>Step in</button>
+        </div>
+      </div>
     )
   };
 
   const FaceEnemy = ({enemy, startBattle, escape}) => {
     const currentEnemy = enemy();
     return (
-      <div>
+      <div className="image-screen">
         <h3>Enemy on your way: {currentEnemy.name} (level: {currentEnemy.level})</h3>
+        <img className="image" src= "../img/robot.jpg" alt="robot" />
         <h4>Will you fight?</h4>
         <div className="btn-wrapper">
           <button className="btn" onClick={startBattle}>Fight</button>
@@ -313,11 +321,13 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     )
   };
 
-  const Escaped = ({startTurn}) => {
+  const Escaped = ({returnToStart}) => {
     return (
       <div>
         <h3>You have escaped successfully</h3>
-        <button className="next-turn-button" onClick={startTurn}>Next turn</button>
+        <div className="btn-wrapper">
+          <button className="next-turn-button" onClick={returnToStart}>Next turn</button>
+        </div>
       </div>
     )
   }
@@ -325,10 +335,11 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
   const BattleOver = ({results, player, startTurn, levelUp}) => {
     const battleResults = results();
     return (
-      <div className="battle-over">
-        <h3>{battleResults.escaped === 'notescaped' ? 'Escape failed' : null}</h3>
-        <h3>The battle is over</h3>
-        <h4>{battleResults.winner.name} won!</h4>
+      <div>
+        <h3 className="underline">{battleResults.escaped === 'notescaped' ? 'Escape failed' : null}</h3>
+        <h4>The battle is over</h4>
+        <h3>{battleResults.winner.name} won!</h3>
+        <h4 className="underline">Battle results:</h4>
         <h4>{battleResults.log}</h4>
         <div className="btn-wrapper">
           <button className="next-turn-button" onClick={battleResults.winner === player() ? levelUp : startTurn}>{battleResults.winner === player() ? 'Raise a stat' : 'Next turn'}</button>
@@ -348,7 +359,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
           <option value="luc">luck</option>
         </select>
         <div className="btn-wrapper">
-          <button className="btn" onClick={raise}>Raise</button>
+          <button className="btn" onClick={raise}>Confirm</button>
         </div>
       </div>
     )
@@ -404,7 +415,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
 
   const GameScreen = ({character}) => {
     return (
-      <div>
+      <div className="fullscreen">
         <GameTitle appliedClass="clickedTitle" />
         <GameWindow player={character} />
       </div>
