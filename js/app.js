@@ -347,7 +347,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         faceEnemy: React.createElement(FaceEnemy, { enemy: _this7.getActive.bind(_this7), startBattle: _this7.startBattle.bind(_this7), escape: _this7.escape.bind(_this7) }),
         escaped: React.createElement(Escaped, { returnToStart: _this7.returnToStart.bind(_this7) }),
         battleOver: React.createElement(BattleOver, { results: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), startTurn: _this7.startTurn.bind(_this7), levelUp: _this7.levelUp.bind(_this7) }),
-        levelUp: React.createElement(LevelUp, { raise: _this7.raiseStat.bind(_this7), trackValue: _this7.trackValue.bind(_this7) })
+        levelUp: React.createElement(LevelUp, { raise: _this7.raiseStat.bind(_this7), trackValue: _this7.trackValue.bind(_this7), getStat: _this7.getStat.bind(_this7) })
       };
       _this7.state = {
         currentScreen: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
@@ -422,13 +422,18 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       }
     }, {
       key: 'trackValue',
-      value: function trackValue(element) {
-        this.statUpdate = element;
+      value: function trackValue(event) {
+        this.statUpgrade = event.target.value;
+      }
+    }, {
+      key: 'getStat',
+      value: function getStat() {
+        return this.statUpgrade;
       }
     }, {
       key: 'raiseStat',
       value: function raiseStat() {
-        this.state.player.levelup(this.statUpdate.value);
+        this.state.player.levelup(this.statUpgrade);
         this.setState({ currentScreen: this.screens.nextTurn });
       }
     }, {
@@ -604,7 +609,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         React.createElement(
           'button',
           { className: 'next-turn-button', onClick: battleResults.winner === player() ? levelUp : startTurn },
-          battleResults.winner === player() ? 'Raise a stat' : 'Next turn'
+          battleResults.winner === player() ? 'Level up' : 'Next turn'
         )
       )
     );
@@ -612,7 +617,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
 
   var LevelUp = function LevelUp(_ref11) {
     var raise = _ref11.raise,
-        trackValue = _ref11.trackValue;
+        trackValue = _ref11.trackValue,
+        getStat = _ref11.getStat;
 
     return React.createElement(
       'div',
@@ -620,11 +626,16 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       React.createElement(
         'h3',
         null,
+        'You have got a new level'
+      ),
+      React.createElement(
+        'h4',
+        null,
         'Which stat would you like to raise?'
       ),
       React.createElement(
         'select',
-        { className: 'level-up-stat', ref: trackValue },
+        { className: 'level-up-stat', defaultValue: getStat(), onChange: trackValue },
         React.createElement(
           'option',
           { value: 'str' },

@@ -206,7 +206,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         faceEnemy: <FaceEnemy enemy={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} escape={this.escape.bind(this)}/>,
         escaped: <Escaped returnToStart={this.returnToStart.bind(this)} />,
         battleOver: <BattleOver results={this.getActive.bind(this)} player={this.getPlayer.bind(this)} startTurn={this.startTurn.bind(this)} levelUp={this.levelUp.bind(this)} />,
-        levelUp: <LevelUp raise={this.raiseStat.bind(this)} trackValue={this.trackValue.bind(this)} />
+        levelUp: <LevelUp raise={this.raiseStat.bind(this)} trackValue={this.trackValue.bind(this)} getStat={this.getStat.bind(this)} />
       };
       this.state = {
       currentScreen: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
@@ -232,7 +232,6 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       if (nextAction instanceof Enemy) {
         this.setState({currentScreen: this.screens.faceEnemy})
       }
-
     }
     getActive() {
       return this.state.active;
@@ -261,11 +260,14 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     levelUp() {
       this.setState({currentScreen: this.screens.levelUp});
     }
-    trackValue(element) {
-      this.statUpdate = element;
+    trackValue(event) {
+      this.statUpgrade = event.target.value;
+    }
+    getStat() {
+      return this.statUpgrade;
     }
     raiseStat() {
-      this.state.player.levelup(this.statUpdate.value);
+      this.state.player.levelup(this.statUpgrade);
       this.setState({currentScreen: this.screens.nextTurn});
     }
     returnToStart() {
@@ -342,17 +344,18 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         <h4 className="underline">Battle results:</h4>
         <h4>{battleResults.log}</h4>
         <div className="btn-wrapper">
-          <button className="next-turn-button" onClick={battleResults.winner === player() ? levelUp : startTurn}>{battleResults.winner === player() ? 'Raise a stat' : 'Next turn'}</button>
+          <button className="next-turn-button" onClick={battleResults.winner === player() ? levelUp : startTurn}>{battleResults.winner === player() ? 'Level up' : 'Next turn'}</button>
         </div>
       </div>
     )
   }
 
-  const LevelUp = ({raise, trackValue}) => {
+  const LevelUp = ({raise, trackValue, getStat}) => {
     return (
       <div>
-        <h3>Which stat would you like to raise?</h3>
-        <select className="level-up-stat" ref={trackValue}>
+        <h3>You have got a new level</h3>
+        <h4>Which stat would you like to raise?</h4>
+        <select className="level-up-stat" defaultValue={getStat()} onChange={trackValue}>
           <option value="str">strength</option>
           <option value="dex">dexterity</option>
           <option value="int">intellect</option>
