@@ -73,47 +73,46 @@ class Player extends Character {
       this[this.levelups.pop()]--;
     }
   }
-// Метод для экипирования предмета
+// Method for equipping an item
   equip(item, target) {
     if (target.str >= item.weight) {
-      if (item.classLevel > target[item.type].classLevel) {
+      if (item.classLevel >= target[item.type].classLevel) {
         target[item.type] = item;
-        console.log(`${item.type.charAt(0).toUpperCase() + item.type.slice(1)} equipped.`);
+        return `${item.type.charAt(0).toUpperCase() + item.type.slice(1)} equipped.`;
       }
       else {
-        console.log(`Your ${item.type} is not worse then the found one.`);
+        return `This ${item.type} is not better then the one equipped.`;
       }
     }
     else {
-      console.log(`Cannot equip this item. Too heavy.`)
+      return `Cannot equip this ${item.type}. Too heavy.`;
     }
-  }
-// Method to choose if player want to equip item himself or share it with companion
-  chooseItem(item, selfUse = true){
-    console.log(item);
-    console.log(`${this.name} found the ${item.type} (${[...item].join(', ')}).`)
-    const target = selfUse ? this : this.companion;
-    this.equip(item, target);
   }
 // Method for breaking a container lock
   breakAnyLock(target){
     const typeParam = target.lock.electric ? this.int : this.dex;
+    const content = target.content;
     if (typeParam >= target.lock.level){
       if (this.ap < 2){
-        console.log('Not enought AP.');
-        return false;
+        return 'Not enought AP.';
       }
       this.ap -= 2;
       if (rand(0,9) + target.lock.level < typeParam + this.luc) {
-        console.log('Container opened.');
-        this.chooseItem(target.content);
+        let result = {
+          status: {
+            log: `${this.name} found ${content.type === 'weapon' ? 'a' : 'an'} ${content.type}:`,
+            stats: `${[...content].join(', ')}.`
+          },
+          item: content
+        };
+        return result;
       }
       else {
-        console.log('Lockpick failed.');
+        return 'Lockpick failed.';
       }
     }
     else {
-      console.log('Lock is too complicated.');
+      return 'Lock is too complicated.';
     }
   }
   // Method to avoid battle
@@ -240,8 +239,8 @@ function getRandomLevel(){
 
 // Класс для NPC, с которыми игрок сможет взаимодействовать
 class NPC extends Enemy{
-  constructor(){
-    super();
+  constructor(weapons, armors){
+    super(weapons, armors);
     this.name = npcNameGenerator();
     this.int = 5 + Math.floor(this.level / 2);
   }
@@ -276,13 +275,13 @@ class Lock{
   constructor(){
     this.fortified = rand(0, 1);
     this.electric = rand(0, 1);
-    this.level = rand (5, 10);
+    this.level = rand (1, 10);
   }
 }
 
 // Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
 function startNextTurn(game) {
-  let index = rand(3, 4);
+  let index = rand(0, 4);
   switch (index){
     case 0:
     case 1:

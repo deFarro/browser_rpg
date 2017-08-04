@@ -134,7 +134,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [20, 20, 20, 0],
+        stats: [20, 20, 20, 20],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       };
@@ -352,7 +352,9 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         escaped: React.createElement(Escaped, { returnToStart: _this7.returnToStart.bind(_this7) }),
         battleOver: React.createElement(BattleOver, { results: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), startTurn: _this7.startTurn.bind(_this7), levelUp: _this7.levelUp.bind(_this7) }),
         levelUp: React.createElement(LevelUp, { raise: _this7.raiseStat.bind(_this7), trackValue: _this7.trackValue.bind(_this7), getStat: _this7.getStat.bind(_this7) }),
-        faceContainer: React.createElement(FaceContainer, { container: _this7.getActive.bind(_this7), breakLock: _this7.breakLock.bind(_this7) })
+        faceContainer: React.createElement(FaceContainer, { container: _this7.getActive.bind(_this7), breakLock: _this7.breakLock.bind(_this7) }),
+        openSuccess: React.createElement(OpenSuccess, { result: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), equipPlayer: _this7.equipItem.bind(_this7, _this7.getPlayer.bind(_this7)), equipCompanion: _this7.equipItem.bind(_this7, _this7.getCompanion.bind(_this7)) }),
+        finishedContainer: React.createElement(FinishedContainer, { status: _this7.getActive.bind(_this7), returnToStart: _this7.returnToStart.bind(_this7) })
       };
       _this7.state = {
         currentScreen: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
@@ -382,7 +384,6 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       key: 'startTurn',
       value: function startTurn() {
         var nextAction = startNextTurn(this);
-        console.log(nextAction);
         this.state.active = nextAction;
         if (nextAction instanceof Enemy) {
           this.setState({ currentScreen: this.screens.faceEnemy });
@@ -400,6 +401,11 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       key: 'getPlayer',
       value: function getPlayer() {
         return this.state.player;
+      }
+    }, {
+      key: 'getCompanion',
+      value: function getCompanion() {
+        return this.state.player.companion;
       }
     }, {
       key: 'escape',
@@ -448,10 +454,20 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     }, {
       key: 'breakLock',
       value: function breakLock() {
-        this.state.player.breakAnyLock(this.state.active);
-        console.log(this.state.player.weapon);
-        console.log(this.state.player.armor);
-        this.forceUpdate();
+        var result = this.state.player.breakAnyLock(this.state.active);
+        this.state.active = result;
+        if (typeof result === 'string') {
+          this.setState({ currentScreen: this.screens.finishedContainer });
+        } else {
+          this.setState({ currentScreen: this.screens.openSuccess });
+        }
+      }
+    }, {
+      key: 'equipItem',
+      value: function equipItem(target) {
+        var result = this.state.player.equip(this.state.active.item, target());
+        this.state.active = result;
+        this.setState({ currentScreen: this.screens.finishedContainer });
       }
     }, {
       key: 'returnToStart',
@@ -505,7 +521,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       React.createElement(
         'h3',
         null,
-        'There is a shack in front of you'
+        'There is a shack in front of you.'
       ),
       React.createElement('img', { className: 'image', src: '../img/shack.jpg', alt: 'shack' }),
       React.createElement(
@@ -536,7 +552,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         currentEnemy.name,
         ' (level: ',
         currentEnemy.level,
-        ')'
+        ').'
       ),
       React.createElement('img', { className: 'image', src: '../img/robot.jpg', alt: 'robot' }),
       React.createElement(
@@ -570,7 +586,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       React.createElement(
         'h3',
         null,
-        'You have escaped successfully'
+        'You have escaped successfully.'
       ),
       React.createElement(
         'div',
@@ -602,7 +618,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       React.createElement(
         'h4',
         null,
-        'The battle is over'
+        'The battle is over.'
       ),
       React.createElement(
         'h3',
@@ -643,7 +659,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       React.createElement(
         'h3',
         null,
-        'You have got a new level'
+        'You have got a new level.'
       ),
       React.createElement(
         'h4',
@@ -693,24 +709,21 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     var currentContainer = container();
     return React.createElement(
       'div',
-      null,
+      { className: 'image-screen' },
       React.createElement(
         'h3',
         null,
-        'You have found a safe'
+        'You have found a safe.'
       ),
+      React.createElement('img', { className: 'image', src: '../img/safe.jpg', alt: 'robot' }),
       React.createElement(
         'h4',
         null,
-        '(lock level: ',
+        'Lock level: ',
         currentContainer.lock.level,
-        ')'
-      ),
-      React.createElement(
-        'h4',
-        null,
-        'Lock seems to be ',
-        currentContainer.lock.electric === 1 ? 'electronic' : 'mechanic'
+        ', seems to be ',
+        currentContainer.lock.electric === 1 ? 'electronic' : 'mechanic',
+        '.'
       ),
       React.createElement(
         'div',
@@ -724,10 +737,76 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
+  var OpenSuccess = function OpenSuccess(_ref13) {
+    var result = _ref13.result,
+        player = _ref13.player,
+        equipPlayer = _ref13.equipPlayer,
+        equipCompanion = _ref13.equipCompanion;
+
+    var status = result().status;
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'h3',
+        null,
+        'Container opened.'
+      ),
+      React.createElement(
+        'h4',
+        { className: 'underline' },
+        status.log
+      ),
+      React.createElement(
+        'h4',
+        null,
+        status.stats
+      ),
+      React.createElement(
+        'div',
+        { className: 'btn-wrapper' },
+        React.createElement(
+          'button',
+          { className: 'btn', onClick: equipPlayer },
+          ' Equip yourself'
+        ),
+        player().companion ? React.createElement(
+          'button',
+          { className: 'btn', onClick: equipCompanion },
+          'Pass to companion'
+        ) : null
+      )
+    );
+  };
+
+  var FinishedContainer = function FinishedContainer(_ref14) {
+    var status = _ref14.status,
+        returnToStart = _ref14.returnToStart;
+
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'h3',
+        null,
+        status()
+      ),
+      React.createElement(
+        'div',
+        { className: 'btn-wrapper' },
+        React.createElement(
+          'button',
+          { className: 'next-turn-button', onClick: returnToStart },
+          'Next turn'
+        )
+      )
+    );
+  };
+
   var FaceNPC = function FaceNPC() {};
 
-  var PlayerWindow = function PlayerWindow(_ref13) {
-    var player = _ref13.player;
+  var PlayerWindow = function PlayerWindow(_ref15) {
+    var player = _ref15.player;
 
     return React.createElement(
       'div',
@@ -811,8 +890,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var Companion = function Companion(_ref14) {
-    var companion = _ref14.companion;
+  var Companion = function Companion(_ref16) {
+    var companion = _ref16.companion;
 
     return React.createElement(
       'div',
@@ -826,8 +905,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var LogWindow = function LogWindow(_ref15) {
-    var content = _ref15.content;
+  var LogWindow = function LogWindow(_ref17) {
+    var content = _ref17.content;
 
     return React.createElement(
       'div',
@@ -851,8 +930,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var GameScreen = function GameScreen(_ref16) {
-    var character = _ref16.character;
+  var GameScreen = function GameScreen(_ref18) {
+    var character = _ref18.character;
 
     return React.createElement(
       'div',

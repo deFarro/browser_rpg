@@ -78,7 +78,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [20, 20, 20, 0],
+        stats: [20, 20, 20, 20],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       }
@@ -211,7 +211,9 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         escaped: <Escaped returnToStart={this.returnToStart.bind(this)} />,
         battleOver: <BattleOver results={this.getActive.bind(this)} player={this.getPlayer.bind(this)} startTurn={this.startTurn.bind(this)} levelUp={this.levelUp.bind(this)} />,
         levelUp: <LevelUp raise={this.raiseStat.bind(this)} trackValue={this.trackValue.bind(this)} getStat={this.getStat.bind(this)} />,
-        faceContainer: <FaceContainer container={this.getActive.bind(this)} breakLock={this.breakLock.bind(this)} />
+        faceContainer: <FaceContainer container={this.getActive.bind(this)} breakLock={this.breakLock.bind(this)} />,
+        openSuccess: <OpenSuccess result={this.getActive.bind(this)} player={this.getPlayer.bind(this)} equipPlayer={this.equipItem.bind(this, this.getPlayer.bind(this))} equipCompanion={this.equipItem.bind(this, this.getCompanion.bind(this))} />,
+        finishedContainer: <FinishedContainer status={this.getActive.bind(this)} returnToStart={this.returnToStart.bind(this)} />
       };
       this.state = {
       currentScreen: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
@@ -233,7 +235,6 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     }
     startTurn() {
       const nextAction = startNextTurn(this);
-      console.log(nextAction);
       this.state.active = nextAction;
       if (nextAction instanceof Enemy) {
         this.setState({currentScreen: this.screens.faceEnemy})
@@ -247,6 +248,9 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     }
     getPlayer() {
       return this.state.player;
+    }
+    getCompanion() {
+      return this.state.player.companion;
     }
     escape() {
       if (this.state.player.escape()) {
@@ -280,10 +284,19 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       this.setState({currentScreen: this.screens.nextTurn});
     }
     breakLock() {
-      this.state.player.breakAnyLock(this.state.active);
-      console.log(this.state.player.weapon);
-      console.log(this.state.player.armor);
-      this.forceUpdate();
+      const result = this.state.player.breakAnyLock(this.state.active);
+      this.state.active = result;
+      if (typeof result === 'string') {
+        this.setState({currentScreen: this.screens.finishedContainer});
+      }
+      else {
+        this.setState({currentScreen: this.screens.openSuccess});
+      }
+    }
+    equipItem(target) {
+      const result = this.state.player.equip(this.state.active.item, target());
+      this.state.active = result;
+      this.setState({currentScreen: this.screens.finishedContainer});
     }
     returnToStart() {
       this.setState({currentScreen: this.screens.nextTurn});
@@ -314,7 +327,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
   const NextTurnButton = ({startTurn}) => {
     return (
       <div className="image-screen">
-        <h3>There is a shack in front of you</h3>
+        <h3>There is a shack in front of you.</h3>
         <img className="image" src= "../img/shack.jpg" alt="shack" />
         <div className="btn-wrapper">
           <button className="next-turn-button" onClick={startTurn}>Step in</button>
@@ -327,7 +340,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     const currentEnemy = enemy();
     return (
       <div className="image-screen">
-        <h3>Enemy on your way: {currentEnemy.name} (level: {currentEnemy.level})</h3>
+        <h3>Enemy on your way: {currentEnemy.name} (level: {currentEnemy.level}).</h3>
         <img className="image" src= "../img/robot.jpg" alt="robot" />
         <h4>Will you fight?</h4>
         <div className="btn-wrapper">
@@ -341,7 +354,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
   const Escaped = ({returnToStart}) => {
     return (
       <div>
-        <h3>You have escaped successfully</h3>
+        <h3>You have escaped successfully.</h3>
         <div className="btn-wrapper">
           <button className="next-turn-button" onClick={returnToStart}>Next turn</button>
         </div>
@@ -354,7 +367,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     return (
       <div>
         <h3 className="underline">{battleResults.escaped === 'notescaped' ? 'Escape failed' : null}</h3>
-        <h4>The battle is over</h4>
+        <h4>The battle is over.</h4>
         <h3>{battleResults.winner.name} won!</h3>
         <h4 className="underline">Battle results:</h4>
         <h4>{battleResults.log}</h4>
@@ -368,7 +381,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
   const LevelUp = ({raise, trackValue, getStat}) => {
     return (
       <div>
-        <h3>You have got a new level</h3>
+        <h3>You have got a new level.</h3>
         <h4>Which stat would you like to raise?</h4>
         <select className="level-up-stat" defaultValue={getStat()} onChange={trackValue}>
           <option value="str">strength</option>
@@ -386,10 +399,10 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
   const FaceContainer = ({container, breakLock}) => {
     const currentContainer = container();
     return (
-      <div>
-        <h3>You have found a safe</h3>
-        <h4>(lock level: {currentContainer.lock.level})</h4>
-        <h4>Lock seems to be {currentContainer.lock.electric === 1 ? 'electronic' : 'mechanic'}</h4>
+      <div className="image-screen">
+        <h3>You have found a safe.</h3>
+        <img className="image" src= "../img/safe.jpg" alt="robot" />
+        <h4>Lock level: {currentContainer.lock.level}, seems to be {currentContainer.lock.electric === 1 ? 'electronic' : 'mechanic'}.</h4>
         <div className="btn-wrapper">
           <button className="btn" onClick={breakLock}>{currentContainer.lock.electric === 1 ? 'Try to hack' : 'Try to lockpick'}</button>
         </div>
@@ -397,11 +410,31 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     )
   };
 
+  const OpenSuccess = ({result, player, equipPlayer, equipCompanion}) => {
+    const status = result().status;
+    return (
+      <div>
+        <h3>Container opened.</h3>
+        <h4 className="underline">{status.log}</h4>
+        <h4>{status.stats}</h4>
+        <div className="btn-wrapper">
+          <button className="btn" onClick={equipPlayer}> Equip yourself</button>
+          {player().companion ? <button className="btn" onClick={equipCompanion}>Pass to companion</button> : null}
+        </div>
+      </div>
+    )
+  }
 
-
-
-
-
+  const FinishedContainer = ({status, returnToStart}) => {
+    return (
+      <div>
+        <h3>{status()}</h3>
+        <div className="btn-wrapper">
+          <button className="next-turn-button" onClick={returnToStart}>Next turn</button>
+        </div>
+      </div>
+    )
+  }
 
   const FaceNPC = () => {};
 
