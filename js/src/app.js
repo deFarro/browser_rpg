@@ -49,7 +49,11 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       }
     }
     render() {
-      return <h1 className={this.state.className}>Future In The Past</h1>;
+      return (
+        <div className="title-wrapper">
+          <h1 className={this.state.className}>Future In The Past</h1>
+        </div>
+      )
     }
   }
 
@@ -74,7 +78,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [100, 0, 0, 0],
+        stats: [20, 20, 20, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       }
@@ -206,7 +210,8 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         faceEnemy: <FaceEnemy enemy={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} escape={this.escape.bind(this)}/>,
         escaped: <Escaped returnToStart={this.returnToStart.bind(this)} />,
         battleOver: <BattleOver results={this.getActive.bind(this)} player={this.getPlayer.bind(this)} startTurn={this.startTurn.bind(this)} levelUp={this.levelUp.bind(this)} />,
-        levelUp: <LevelUp raise={this.raiseStat.bind(this)} trackValue={this.trackValue.bind(this)} getStat={this.getStat.bind(this)} />
+        levelUp: <LevelUp raise={this.raiseStat.bind(this)} trackValue={this.trackValue.bind(this)} getStat={this.getStat.bind(this)} />,
+        faceContainer: <FaceContainer container={this.getActive.bind(this)} breakLock={this.breakLock.bind(this)} />
       };
       this.state = {
       currentScreen: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
@@ -228,9 +233,13 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     }
     startTurn() {
       const nextAction = startNextTurn(this);
+      console.log(nextAction);
       this.state.active = nextAction;
       if (nextAction instanceof Enemy) {
         this.setState({currentScreen: this.screens.faceEnemy})
+      }
+      if (nextAction instanceof Container) {
+        this.setState({currentScreen: this.screens.faceContainer})
       }
     }
     getActive() {
@@ -269,6 +278,12 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     raiseStat() {
       this.state.player.levelup(this.statUpgrade);
       this.setState({currentScreen: this.screens.nextTurn});
+    }
+    breakLock() {
+      this.state.player.breakAnyLock(this.state.active);
+      console.log(this.state.player.weapon);
+      console.log(this.state.player.armor);
+      this.forceUpdate();
     }
     returnToStart() {
       this.setState({currentScreen: this.screens.nextTurn});
@@ -368,7 +383,26 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     )
   }
 
-  const FaceContainer = () => {};
+  const FaceContainer = ({container, breakLock}) => {
+    const currentContainer = container();
+    return (
+      <div>
+        <h3>You have found a safe</h3>
+        <h4>(lock level: {currentContainer.lock.level})</h4>
+        <h4>Lock seems to be {currentContainer.lock.electric === 1 ? 'electronic' : 'mechanic'}</h4>
+        <div className="btn-wrapper">
+          <button className="btn" onClick={breakLock}>{currentContainer.lock.electric === 1 ? 'Try to hack' : 'Try to lockpick'}</button>
+        </div>
+      </div>
+    )
+  };
+
+
+
+
+
+
+
   const FaceNPC = () => {};
 
   const PlayerWindow = ({player}) => {

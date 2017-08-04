@@ -144,14 +144,11 @@ body {
   float: left;
   width: 60%;
   height: 70%;
-  padding-top: 3em;
   border-radius: 5px 0 0 0;
   position: relative; }
 
-.image-screen {
-  margin-top: -3em; }
-  .image-screen h4 {
-    margin: 1em; }
+.image-screen h4 {
+  margin: 1em; }
 
 .image {
   width: 65%;

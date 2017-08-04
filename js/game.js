@@ -76,41 +76,28 @@ class Player extends Character {
 // Метод для экипирования предмета
   equip(item, target) {
     if (target.str >= item.weight) {
-      target[item.type] = item;
-      console.log(`Item equiped.`);
+      if (item.classLevel > target[item.type].classLevel) {
+        target[item.type] = item;
+        console.log(`${item.type.charAt(0).toUpperCase() + item.type.slice(1)} equipped.`);
+      }
+      else {
+        console.log(`Your ${item.type} is not worse then the found one.`);
+      }
     }
     else {
       console.log(`Cannot equip this item. Too heavy.`)
     }
   }
-// Метод для выбора действия с предметом
-  chooseItem(item, confirm = true, selfUse = true){
+// Method to choose if player want to equip item himself or share it with companion
+  chooseItem(item, selfUse = true){
+    console.log(item);
     console.log(`${this.name} found the ${item.type} (${[...item].join(', ')}).`)
-    if (confirm) {
-    let target = selfUse ? this : this.companion;
+    const target = selfUse ? this : this.companion;
     this.equip(item, target);
-    }
   }
-// Метод для взлома физических замков, в зависимости от ловкости
-  lockpick(target){
-    if (target.lock.electric){
-      console.log('Cannot lockpick electric lock.');
-    }
-    else {
-      this.breakAnyLock(target, this.dex)
-    }
-  }
-// Метод для взлома электронных замков, в зависимости от интеллекта
-  hack(target){
-    if (!target.lock.electric){
-      console.log('Cannot hack physical lock.');
-    }
-    else {
-      this.breakAnyLock(target, this.int);
-    }
-  }
-// Метод для реализации механики взлома замка
-  breakAnyLock(target, typeParam){
+// Method for breaking a container lock
+  breakAnyLock(target){
+    const typeParam = target.lock.electric ? this.int : this.dex;
     if (typeParam >= target.lock.level){
       if (this.ap < 2){
         console.log('Not enought AP.');
@@ -220,8 +207,8 @@ class NextEnemyStats {
 // Функция, которая распределяет уровни противника по характеристикам
   getEnemyStats(){
     let stats = [], levelups = this.level;
-    stats[0] = 5 + Math.ceil(levelups / 2);
-    stats[1] = 5 + Math.floor(levelups / 2);
+    stats[0] = 1 + Math.ceil(levelups / 2);
+    stats[1] = 1 + Math.floor(levelups / 2);
     return stats;
   }
 }
@@ -269,16 +256,18 @@ class NPC extends Enemy{
 }
 NPC.prototype.heal = Player.prototype.heal;
 
-class Container{
-  constructor(){
+class Container {
+  constructor(weapons, armors) {
     this.lock = new Lock();
+    this.weapons = weapons;
+    this.armors = armors;
   }
-  get content(){
-    if (rand(0, 1)){
-      return weapons[rand(0, weapons.length - 1)];
+  get content() {
+    if (rand(0, 1)) {
+      return this.weapons[rand(0, this.weapons.length - 1)];
     }
     else {
-      return armors[rand(0, armors.length - 1)];
+      return this.armors[rand(0, this.armors.length - 1)];
     }
   }
 }
@@ -293,7 +282,7 @@ class Lock{
 
 // Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
 function startNextTurn(game) {
-  let index = rand(0, 2);
+  let index = rand(3, 4);
   switch (index){
     case 0:
     case 1:
@@ -302,7 +291,7 @@ function startNextTurn(game) {
       break;
     case 3:
     case 4:
-      character.lockpick(new Container());
+      return new Container(game.weapons, game.armors);
       break;
     case 5:
       character.talk(new NPC());
@@ -374,6 +363,7 @@ function* createItems(maxChar, type) {
   for (let i = 0; i < maxChar; i++) {
     let item = {};
     item[type.mainChar] = i + 1;
+    item.classLevel = i + 1;
     item.weight = Math.floor(i * 1.4);
     if (type.secondChar) {
       item[type.secondChar] = Math.floor(i / 3 + 1);
@@ -382,7 +372,8 @@ function* createItems(maxChar, type) {
   item[Symbol.iterator] = function(){
     let stats = Object.keys(item);
     stats = stats.map(stat => {return [stat] + ": " + item[stat]})
-    .filter(stat => {return stat.indexOf('type') == -1});
+    .filter(stat => {return stat.indexOf('type') == -1})
+    .filter(stat => {return stat.indexOf('classLevel') == -1});
     return {
       next() {
         return {done: !stats.length, value: stats.shift()}

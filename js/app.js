@@ -86,9 +86,13 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       key: 'render',
       value: function render() {
         return React.createElement(
-          'h1',
-          { className: this.state.className },
-          'Future In The Past'
+          'div',
+          { className: 'title-wrapper' },
+          React.createElement(
+            'h1',
+            { className: this.state.className },
+            'Future In The Past'
+          )
         );
       }
     }]);
@@ -130,7 +134,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [100, 0, 0, 0],
+        stats: [20, 20, 20, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       };
@@ -347,7 +351,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         faceEnemy: React.createElement(FaceEnemy, { enemy: _this7.getActive.bind(_this7), startBattle: _this7.startBattle.bind(_this7), escape: _this7.escape.bind(_this7) }),
         escaped: React.createElement(Escaped, { returnToStart: _this7.returnToStart.bind(_this7) }),
         battleOver: React.createElement(BattleOver, { results: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), startTurn: _this7.startTurn.bind(_this7), levelUp: _this7.levelUp.bind(_this7) }),
-        levelUp: React.createElement(LevelUp, { raise: _this7.raiseStat.bind(_this7), trackValue: _this7.trackValue.bind(_this7), getStat: _this7.getStat.bind(_this7) })
+        levelUp: React.createElement(LevelUp, { raise: _this7.raiseStat.bind(_this7), trackValue: _this7.trackValue.bind(_this7), getStat: _this7.getStat.bind(_this7) }),
+        faceContainer: React.createElement(FaceContainer, { container: _this7.getActive.bind(_this7), breakLock: _this7.breakLock.bind(_this7) })
       };
       _this7.state = {
         currentScreen: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
@@ -377,9 +382,13 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       key: 'startTurn',
       value: function startTurn() {
         var nextAction = startNextTurn(this);
+        console.log(nextAction);
         this.state.active = nextAction;
         if (nextAction instanceof Enemy) {
           this.setState({ currentScreen: this.screens.faceEnemy });
+        }
+        if (nextAction instanceof Container) {
+          this.setState({ currentScreen: this.screens.faceContainer });
         }
       }
     }, {
@@ -435,6 +444,14 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       value: function raiseStat() {
         this.state.player.levelup(this.statUpgrade);
         this.setState({ currentScreen: this.screens.nextTurn });
+      }
+    }, {
+      key: 'breakLock',
+      value: function breakLock() {
+        this.state.player.breakAnyLock(this.state.active);
+        console.log(this.state.player.weapon);
+        console.log(this.state.player.armor);
+        this.forceUpdate();
       }
     }, {
       key: 'returnToStart',
@@ -669,11 +686,48 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var FaceContainer = function FaceContainer() {};
+  var FaceContainer = function FaceContainer(_ref12) {
+    var container = _ref12.container,
+        breakLock = _ref12.breakLock;
+
+    var currentContainer = container();
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'h3',
+        null,
+        'You have found a safe'
+      ),
+      React.createElement(
+        'h4',
+        null,
+        '(lock level: ',
+        currentContainer.lock.level,
+        ')'
+      ),
+      React.createElement(
+        'h4',
+        null,
+        'Lock seems to be ',
+        currentContainer.lock.electric === 1 ? 'electronic' : 'mechanic'
+      ),
+      React.createElement(
+        'div',
+        { className: 'btn-wrapper' },
+        React.createElement(
+          'button',
+          { className: 'btn', onClick: breakLock },
+          currentContainer.lock.electric === 1 ? 'Try to hack' : 'Try to lockpick'
+        )
+      )
+    );
+  };
+
   var FaceNPC = function FaceNPC() {};
 
-  var PlayerWindow = function PlayerWindow(_ref12) {
-    var player = _ref12.player;
+  var PlayerWindow = function PlayerWindow(_ref13) {
+    var player = _ref13.player;
 
     return React.createElement(
       'div',
@@ -757,8 +811,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var Companion = function Companion(_ref13) {
-    var companion = _ref13.companion;
+  var Companion = function Companion(_ref14) {
+    var companion = _ref14.companion;
 
     return React.createElement(
       'div',
@@ -772,8 +826,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var LogWindow = function LogWindow(_ref14) {
-    var content = _ref14.content;
+  var LogWindow = function LogWindow(_ref15) {
+    var content = _ref15.content;
 
     return React.createElement(
       'div',
@@ -797,8 +851,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var GameScreen = function GameScreen(_ref15) {
-    var character = _ref15.character;
+  var GameScreen = function GameScreen(_ref16) {
+    var character = _ref16.character;
 
     return React.createElement(
       'div',
