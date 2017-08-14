@@ -78,7 +78,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [20, 20, 20, 20],
+        stats: [0, 20, 20, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       }
@@ -203,17 +203,20 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     constructor(props) {
       super(props);
       this.playerStats = props;
-      this.weapons = makeWeaponsArray(15);
-      this.armors = makeArmorsArray(15);
+      this.weapons = makeWeaponsArray(25);
+      this.armors = makeArmorsArray(25);
+      this.statUpgrade = 'str';
       this.screens = {
         nextTurn: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
         faceEnemy: <FaceEnemy enemy={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} escape={this.escape.bind(this)}/>,
         escaped: <Escaped returnToStart={this.returnToStart.bind(this)} />,
-        battleOver: <BattleOver results={this.getActive.bind(this)} player={this.getPlayer.bind(this)} startTurn={this.startTurn.bind(this)} levelUp={this.levelUp.bind(this)} />,
+        battleOver: <BattleOver results={this.getActive.bind(this)} player={this.getPlayer.bind(this)} returnToStart={this.returnToStart.bind(this)} levelUp={this.levelUp.bind(this)} />,
         levelUp: <LevelUp raise={this.raiseStat.bind(this)} trackValue={this.trackValue.bind(this)} getStat={this.getStat.bind(this)} />,
         faceContainer: <FaceContainer container={this.getActive.bind(this)} breakLock={this.breakLock.bind(this)} />,
         openSuccess: <OpenSuccess result={this.getActive.bind(this)} player={this.getPlayer.bind(this)} equipPlayer={this.equipItem.bind(this, this.getPlayer.bind(this))} equipCompanion={this.equipItem.bind(this, this.getCompanion.bind(this))} />,
-        finishedContainer: <FinishedContainer status={this.getActive.bind(this)} returnToStart={this.returnToStart.bind(this)} />
+        finishedContainer: <FinishedContainer status={this.getActive.bind(this)} returnToStart={this.returnToStart.bind(this)} />,
+        faceNPC: <FaceNPC npc={this.getActive.bind(this)} next={this.talk.bind(this)} />,
+        finishedConversation: <FinishedConversation result={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} returnToStart={this.returnToStart.bind(this)} />
       };
       this.state = {
       currentScreen: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
@@ -241,6 +244,9 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       }
       if (nextAction instanceof Container) {
         this.setState({currentScreen: this.screens.faceContainer})
+      }
+      if (nextAction instanceof NPC) {
+        this.setState({currentScreen: this.screens.faceNPC})
       }
     }
     getActive() {
@@ -281,6 +287,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     }
     raiseStat() {
       this.state.player.levelup(this.statUpgrade);
+      this.state.active = '';
       this.setState({currentScreen: this.screens.nextTurn});
     }
     breakLock() {
@@ -298,7 +305,15 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       this.state.active = result;
       this.setState({currentScreen: this.screens.finishedContainer});
     }
+    talk(goal, forced) {
+      const result = this.state.player.talk(this.state.active, goal, forced);
+      if (typeof result !== "string") {
+        this.state.active = result;
+      }
+      this.setState({currentScreen: this.screens.finishedConversation});
+    }
     returnToStart() {
+      this.state.active = '';
       this.setState({currentScreen: this.screens.nextTurn});
     }
     render() {
@@ -328,7 +343,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     return (
       <div className="image-screen">
         <h3>There is a shack in front of you.</h3>
-        <img className="image" src= "../img/shack.jpg" alt="shack" />
+        <img className="image" src= "img/shack.jpg" alt="shack" />
         <div className="btn-wrapper">
           <button className="next-turn-button" onClick={startTurn}>Step in</button>
         </div>
@@ -341,7 +356,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     return (
       <div className="image-screen">
         <h3>Enemy on your way: {currentEnemy.name} (level: {currentEnemy.level}).</h3>
-        <img className="image" src= "../img/robot.jpg" alt="robot" />
+        <img className="image" src= "img/robot.jpg" alt="robot" />
         <h4>Will you fight?</h4>
         <div className="btn-wrapper">
           <button className="btn" onClick={startBattle}>Fight</button>
@@ -362,7 +377,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     )
   }
 
-  const BattleOver = ({results, player, startTurn, levelUp}) => {
+  const BattleOver = ({results, player, returnToStart, levelUp}) => {
     const battleResults = results();
     return (
       <div>
@@ -372,7 +387,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         <h4 className="underline">Battle results:</h4>
         <h4>{battleResults.log}</h4>
         <div className="btn-wrapper">
-          <button className="next-turn-button" onClick={battleResults.winner === player() ? levelUp : startTurn}>{battleResults.winner === player() ? 'Level up' : 'Next turn'}</button>
+          <button className="next-turn-button" onClick={battleResults.winner === player() ? levelUp : returnToStart}>{battleResults.winner === player() ? 'Level up' : 'Next turn'}</button>
         </div>
       </div>
     )
@@ -383,7 +398,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       <div>
         <h3>You have got a new level.</h3>
         <h4>Which stat would you like to raise?</h4>
-        <select className="level-up-stat" defaultValue={getStat()} onChange={trackValue}>
+        <select className="level-up-stat" defaultValue={getStat() || 'str'} onChange={trackValue}>
           <option value="str">strength</option>
           <option value="dex">dexterity</option>
           <option value="int">intellect</option>
@@ -401,7 +416,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     return (
       <div className="image-screen">
         <h3>You have found a safe.</h3>
-        <img className="image" src= "../img/safe.jpg" alt="robot" />
+        <img className="image" src= "img/safe.jpg" alt="robot" />
         <h4>Lock level: {currentContainer.lock.level}, seems to be {currentContainer.lock.electric === 1 ? 'electronic' : 'mechanic'}.</h4>
         <div className="btn-wrapper">
           <button className="btn" onClick={breakLock}>{currentContainer.lock.electric === 1 ? 'Try to hack' : 'Try to lockpick'}</button>
@@ -436,7 +451,102 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     )
   }
 
-  const FaceNPC = () => {};
+  class FaceNPC extends React.Component {
+    constructor(props) {
+      super(props);
+      this.npc = props.npc();
+      this.nextAction = props.next;
+      this.buttonSets = [
+        {
+          title: 'What will you do?',
+          buttons: [
+            {
+              text: 'Ask to heal',
+              action: 'heal'
+            },
+            {
+              text: 'Invite to join',
+              action: 'join'
+            },
+            {
+              text: 'Demand a weapon',
+              action: 'supply'
+            }
+          ]
+        },
+        {
+          title: 'What will be your tactic?',
+          buttons : [
+            {
+              text: 'Threaten',
+              action: true
+            },
+            {
+              text: 'Persuade',
+              action: false
+            }
+          ]
+        }
+      ];
+      this.state = {
+        display: this.buttonSets[0],
+        action: '',
+        forced: ''
+      }
+    }
+    chooseGoal(event) {
+      this.state.action = event.target.dataset.action;
+      this.setState({display: this.buttonSets[1]});
+    }
+    defineTactic(event) {
+      this.state.forced = event.target.dataset.action;
+      this.nextAction(this.state.action, this.state.forced);
+    }
+    render() {
+      return (
+        <div className="image-screen">
+          <h3>You met a stranger: {this.npc.name} (level: {this.npc.level}).</h3>
+          <img className="image" src= "img/npc.jpg" alt="robot" />
+          <Conversation props={this.state.display} handleClick={this.state.display === this.buttonSets[0] ? this.chooseGoal.bind(this) : this.defineTactic.bind(this)} />
+        </div>
+      )
+    }
+  }
+
+  const Conversation = ({props, handleClick}) => {
+    return (
+      <div>
+        <h4>{props.title}</h4>
+        <div className="btn-wrapper">
+          {props.buttons.map((button, index) => <button key={index} className="btn" data-action={button.action} onClick={handleClick}>{button.text}</button>)}
+        </div>
+      </div>
+    );
+  }
+
+  const FinishedConversation = ({result, startBattle, returnToStart}) => {
+    const currentResult = result();
+    if (currentResult instanceof NPC) {
+      var status = `Attempt failed.`;
+      var action = `${currentResult.name} attacks you.`;
+      var handle = startBattle;
+      var text = 'Fight back';
+    }
+    else {
+      var status = currentResult.status;
+      var handle = returnToStart;
+      var text = 'Next turn';
+    }
+    return (
+      <div>
+        <h3>{status}</h3>
+        <h4>{action}</h4>
+        <div className="btn-wrapper">
+          <button className="next-turn-button" onClick={handle}>{text}</button>
+        </div>
+      </div>
+    );
+  }
 
   const PlayerWindow = ({player}) => {
     return (
@@ -446,8 +556,8 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
           <h3>level: {player.level}</h3>
         </div>
         <div className="status">
-          <h2>HP: {player.hp}</h2>
-          <h2>AP: {player.ap}</h2>
+          <h2>HP: {player.hp} / {player.maxHp}</h2>
+          <h2>AP: {player.ap} / {player.maxAp}</h2>
         </div>
         <div className="items">
           <p>Weapon demage: {player.weapon.demage}</p>
@@ -467,7 +577,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
   const Companion = ({companion}) => {
     return (
       <div className="companion">
-        <h3>Companion: {companion ? companion.name : "none"}</h3>
+        <h3>Companion: {companion ? `${companion.name} (level ${companion.level})` : "none"}</h3>
       </div>
     )
   }

@@ -32,12 +32,21 @@ class Character{
   get defenceRate() {
     return this.armor.defence + this.str;
   }
-// Универсальный метод для атаки
+  updateHpAndAp() {
+    if (this.hp > this.maxHp) {
+      this.hp = this.maxHp;
+    }
+    if (this.ap > this.maxAp) {
+      this.ap = this.maxAp;
+    }
+  }
+// Universal attack method
   attack(target, log) {
-    let damage = this.attackRate - target.defenceRate;
+    let damage = (this.attackRate - target.defenceRate);
     if (damage <= 0) {
       damage = 1;
     }
+    damage += this.weapon.demage;
     target.hp -= damage;
     this.ap -= this.weapon.apCost;
     log.push(`${this.name} (level ${this.level}) hit ${target.name} (level ${target.level}) by ${damage}, ${this.ap} AP left.`);
@@ -67,11 +76,12 @@ class Player extends Character {
     this[this.levelups[this.levelups.length - 1]]++;
   }
   leveldown() {
-    console.log(`${this.name} lost a level.`)
     this.level--;
     if (this.levelups.length){
       this[this.levelups.pop()]--;
     }
+    this.updateHpAndAp();
+    return `${this.name} lost a level.`;
   }
 // Method for equipping an item
   equip(item, target) {
@@ -124,7 +134,7 @@ class Player extends Character {
       return true;
     }
   }
-// Метод для восстановления здоровья, в зависимости от интеллекта. Без аргумента персонаж лечит себя
+// Method for healing. Depends on intellect. Without arguments character heals himself
   heal(target = this) {
     if (this.ap < 2){
       console.log('Not enought AP.');
@@ -139,37 +149,34 @@ class Player extends Character {
     else {
       target.hp += regenHp;
     }
-    console.log(`${this.name} healed ${target.name} by ${regenHp}.`);
+    return `${this.name} healed ${target.name} by ${regenHp}.`;
   }
 // Метод для восстановления AP. Игрок пропускает ход (только для мультиплеера)
   rest(){
     this.ap = this.maxAp;
   }
-// Метод для взаимодействия с NPC: попросить присоединиться, вылечить или отдать оружие, убедить с помощью интеллекта или силы
-  talk(target, ask = 'join', forced = false){
-    if (this.ap < 2){
-      console.log('Not enought AP.');
-      return false;
-    }
-    this.ap -= 2;
-    let param = forced ? 'str' : 'int';
+// Method for interacting with NPCs: ask them to heal, join or pass their weapon. Character makes NPC to do it with strength or intellect
+  talk(target, ask, forced) {
+    let param = forced === 'true' ? 'str' : 'int';
     if (ask === 'heal'){
-      this.makeToDo(target, this[param], target[param], target.heal, ask);
+      return this.makeToDo(target, this[param], target[param], target.heal, ask);
     }
     if (ask === 'join'){
-      this.makeToDo(target, this[param], target[param], target.join, ask);
+      return this.makeToDo(target, this[param], target[param], target.join, ask);
     }
     if (ask === 'supply'){
-      this.makeToDo(target, this[param], target[param], target.supply, ask);
+      return this.makeToDo(target, this[param], target[param], target.supply, ask);
     }
   }
   //Метод убеждения NPC
   makeToDo(target, typeParamPlayer, typeParamNPC, action, subject){
     if (typeParamPlayer + Math.floor(this.luc / 2) > typeParamNPC) {
-      action.call(target, this);
+      let result = {status: `${target.name} has agreed to ${subject} ${this.name}.`};
+      result.fullLog = [action.call(target, this)];
+      return result;
     }
     else {
-      console.log(`${target.name} won't ${subject} ${this.name}.`);
+      return `${target.name} won't ${subject} ${this.name}.`;
     }
   }
 }
@@ -190,8 +197,8 @@ class Enemy extends Character{
     let protoStats = new NextEnemyStats();
     super(protoStats);
     this.level = protoStats.level;
-    this.weapon = weapons[4];
-    this.armor = armors[4];
+    this.weapon = weapons[rand(this.level, this.level + 3)];
+    this.armor = armors[rand(this.level, this.level + 3)];
   }
 }
 
@@ -246,11 +253,11 @@ class NPC extends Enemy{
   }
   join(target){
     target.companion = this;
-    console.log(`${this.name} joined ${target.name}.`);
+    return `${this.name} joined ${target.name}.`;
   }
   supply(target){
     target.weapon = this.weapon;
-    console.log(`${this.name} passed weapon to ${target.name}.`);
+    return `${this.name} passed his weapon to ${target.name}.`;
   }
 }
 NPC.prototype.heal = Player.prototype.heal;
@@ -281,7 +288,7 @@ class Lock{
 
 // Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
 function startNextTurn(game) {
-  let index = rand(0, 4);
+  let index = rand(5, 5);
   switch (index){
     case 0:
     case 1:
@@ -293,7 +300,7 @@ function startNextTurn(game) {
       return new Container(game.weapons, game.armors);
       break;
     case 5:
-      character.talk(new NPC());
+      return new NPC(game.weapons, game.armors);
   }
 }
 
@@ -318,10 +325,15 @@ function battle(side1, side2){
   battleDisplay(side1, side2);
   if (side1.dead) {
     status.winner = side2;
+    if (side1.companion) {
+      status.fullLog.push(`Companion has left.`);
+      side1.companion = undefined;
+    }
     side1.hp = side1.maxHp;
     side1.ap = side1.maxAp;
-    if (side1.level > 0){
-      side1.leveldown();
+    if (side1.level > 0) {
+
+      status.fullLog.push(side1.leveldown());
     }
     side1.dead = false;
   }
@@ -349,7 +361,7 @@ function battleRound(side1, side2, log){
   side1.ap = side1.maxAp;
   // Проверяем на наличие помощника у атакующего. Если есть, то атакует помощник
   if (side1.companion && !side1.companion.dead) {
-    battleRound(side1.companion, side2);
+    battleRound(side1.companion, side2, log);
   }
 }
 

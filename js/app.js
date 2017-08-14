@@ -134,7 +134,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         statsRemain: 0,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [20, 20, 20, 20],
+        stats: [0, 20, 20, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       };
@@ -344,17 +344,20 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       var _this7 = _possibleConstructorReturn(this, (GameWindow.__proto__ || Object.getPrototypeOf(GameWindow)).call(this, props));
 
       _this7.playerStats = props;
-      _this7.weapons = makeWeaponsArray(15);
-      _this7.armors = makeArmorsArray(15);
+      _this7.weapons = makeWeaponsArray(25);
+      _this7.armors = makeArmorsArray(25);
+      _this7.statUpgrade = 'str';
       _this7.screens = {
         nextTurn: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
         faceEnemy: React.createElement(FaceEnemy, { enemy: _this7.getActive.bind(_this7), startBattle: _this7.startBattle.bind(_this7), escape: _this7.escape.bind(_this7) }),
         escaped: React.createElement(Escaped, { returnToStart: _this7.returnToStart.bind(_this7) }),
-        battleOver: React.createElement(BattleOver, { results: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), startTurn: _this7.startTurn.bind(_this7), levelUp: _this7.levelUp.bind(_this7) }),
+        battleOver: React.createElement(BattleOver, { results: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), returnToStart: _this7.returnToStart.bind(_this7), levelUp: _this7.levelUp.bind(_this7) }),
         levelUp: React.createElement(LevelUp, { raise: _this7.raiseStat.bind(_this7), trackValue: _this7.trackValue.bind(_this7), getStat: _this7.getStat.bind(_this7) }),
         faceContainer: React.createElement(FaceContainer, { container: _this7.getActive.bind(_this7), breakLock: _this7.breakLock.bind(_this7) }),
         openSuccess: React.createElement(OpenSuccess, { result: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), equipPlayer: _this7.equipItem.bind(_this7, _this7.getPlayer.bind(_this7)), equipCompanion: _this7.equipItem.bind(_this7, _this7.getCompanion.bind(_this7)) }),
-        finishedContainer: React.createElement(FinishedContainer, { status: _this7.getActive.bind(_this7), returnToStart: _this7.returnToStart.bind(_this7) })
+        finishedContainer: React.createElement(FinishedContainer, { status: _this7.getActive.bind(_this7), returnToStart: _this7.returnToStart.bind(_this7) }),
+        faceNPC: React.createElement(FaceNPC, { npc: _this7.getActive.bind(_this7), next: _this7.talk.bind(_this7) }),
+        finishedConversation: React.createElement(FinishedConversation, { result: _this7.getActive.bind(_this7), startBattle: _this7.startBattle.bind(_this7), returnToStart: _this7.returnToStart.bind(_this7) })
       };
       _this7.state = {
         currentScreen: React.createElement(NextTurnButton, { startTurn: _this7.startTurn.bind(_this7) }),
@@ -390,6 +393,9 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         }
         if (nextAction instanceof Container) {
           this.setState({ currentScreen: this.screens.faceContainer });
+        }
+        if (nextAction instanceof NPC) {
+          this.setState({ currentScreen: this.screens.faceNPC });
         }
       }
     }, {
@@ -449,6 +455,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       key: 'raiseStat',
       value: function raiseStat() {
         this.state.player.levelup(this.statUpgrade);
+        this.state.active = '';
         this.setState({ currentScreen: this.screens.nextTurn });
       }
     }, {
@@ -470,8 +477,18 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         this.setState({ currentScreen: this.screens.finishedContainer });
       }
     }, {
+      key: 'talk',
+      value: function talk(goal, forced) {
+        var result = this.state.player.talk(this.state.active, goal, forced);
+        if (typeof result !== "string") {
+          this.state.active = result;
+        }
+        this.setState({ currentScreen: this.screens.finishedConversation });
+      }
+    }, {
       key: 'returnToStart',
       value: function returnToStart() {
+        this.state.active = '';
         this.setState({ currentScreen: this.screens.nextTurn });
       }
     }, {
@@ -523,7 +540,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         null,
         'There is a shack in front of you.'
       ),
-      React.createElement('img', { className: 'image', src: '../img/shack.jpg', alt: 'shack' }),
+      React.createElement('img', { className: 'image', src: 'img/shack.jpg', alt: 'shack' }),
       React.createElement(
         'div',
         { className: 'btn-wrapper' },
@@ -554,7 +571,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         currentEnemy.level,
         ').'
       ),
-      React.createElement('img', { className: 'image', src: '../img/robot.jpg', alt: 'robot' }),
+      React.createElement('img', { className: 'image', src: 'img/robot.jpg', alt: 'robot' }),
       React.createElement(
         'h4',
         null,
@@ -603,7 +620,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
   var BattleOver = function BattleOver(_ref10) {
     var results = _ref10.results,
         player = _ref10.player,
-        startTurn = _ref10.startTurn,
+        returnToStart = _ref10.returnToStart,
         levelUp = _ref10.levelUp;
 
     var battleResults = results();
@@ -641,7 +658,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         { className: 'btn-wrapper' },
         React.createElement(
           'button',
-          { className: 'next-turn-button', onClick: battleResults.winner === player() ? levelUp : startTurn },
+          { className: 'next-turn-button', onClick: battleResults.winner === player() ? levelUp : returnToStart },
           battleResults.winner === player() ? 'Level up' : 'Next turn'
         )
       )
@@ -668,7 +685,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       ),
       React.createElement(
         'select',
-        { className: 'level-up-stat', defaultValue: getStat(), onChange: trackValue },
+        { className: 'level-up-stat', defaultValue: getStat() || 'str', onChange: trackValue },
         React.createElement(
           'option',
           { value: 'str' },
@@ -715,7 +732,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         null,
         'You have found a safe.'
       ),
-      React.createElement('img', { className: 'image', src: '../img/safe.jpg', alt: 'robot' }),
+      React.createElement('img', { className: 'image', src: 'img/safe.jpg', alt: 'robot' }),
       React.createElement(
         'h4',
         null,
@@ -803,10 +820,151 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var FaceNPC = function FaceNPC() {};
+  var FaceNPC = function (_React$Component5) {
+    _inherits(FaceNPC, _React$Component5);
 
-  var PlayerWindow = function PlayerWindow(_ref15) {
-    var player = _ref15.player;
+    function FaceNPC(props) {
+      _classCallCheck(this, FaceNPC);
+
+      var _this10 = _possibleConstructorReturn(this, (FaceNPC.__proto__ || Object.getPrototypeOf(FaceNPC)).call(this, props));
+
+      _this10.npc = props.npc();
+      _this10.nextAction = props.next;
+      _this10.buttonSets = [{
+        title: 'What will you do?',
+        buttons: [{
+          text: 'Ask to heal',
+          action: 'heal'
+        }, {
+          text: 'Invite to join',
+          action: 'join'
+        }, {
+          text: 'Demand a weapon',
+          action: 'supply'
+        }]
+      }, {
+        title: 'What will be your tactic?',
+        buttons: [{
+          text: 'Threaten',
+          action: true
+        }, {
+          text: 'Persuade',
+          action: false
+        }]
+      }];
+      _this10.state = {
+        display: _this10.buttonSets[0],
+        action: '',
+        forced: ''
+      };
+      return _this10;
+    }
+
+    _createClass(FaceNPC, [{
+      key: 'chooseGoal',
+      value: function chooseGoal(event) {
+        this.state.action = event.target.dataset.action;
+        this.setState({ display: this.buttonSets[1] });
+      }
+    }, {
+      key: 'defineTactic',
+      value: function defineTactic(event) {
+        this.state.forced = event.target.dataset.action;
+        this.nextAction(this.state.action, this.state.forced);
+      }
+    }, {
+      key: 'render',
+      value: function render() {
+        return React.createElement(
+          'div',
+          { className: 'image-screen' },
+          React.createElement(
+            'h3',
+            null,
+            'You met a stranger: ',
+            this.npc.name,
+            ' (level: ',
+            this.npc.level,
+            ').'
+          ),
+          React.createElement('img', { className: 'image', src: 'img/npc.jpg', alt: 'robot' }),
+          React.createElement(Conversation, { props: this.state.display, handleClick: this.state.display === this.buttonSets[0] ? this.chooseGoal.bind(this) : this.defineTactic.bind(this) })
+        );
+      }
+    }]);
+
+    return FaceNPC;
+  }(React.Component);
+
+  var Conversation = function Conversation(_ref15) {
+    var props = _ref15.props,
+        handleClick = _ref15.handleClick;
+
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'h4',
+        null,
+        props.title
+      ),
+      React.createElement(
+        'div',
+        { className: 'btn-wrapper' },
+        props.buttons.map(function (button, index) {
+          return React.createElement(
+            'button',
+            { key: index, className: 'btn', 'data-action': button.action, onClick: handleClick },
+            button.text
+          );
+        })
+      )
+    );
+  };
+
+  var FinishedConversation = function FinishedConversation(_ref16) {
+    var result = _ref16.result,
+        startBattle = _ref16.startBattle,
+        returnToStart = _ref16.returnToStart;
+
+    var currentResult = result();
+    if (currentResult instanceof NPC) {
+      var status = 'Attempt failed.';
+      var action = currentResult.name + ' attacks you.';
+      var handle = startBattle;
+      var text = 'Fight back';
+    } else {
+      var status = currentResult.status;
+      var handle = returnToStart;
+      var text = 'Next turn';
+    }
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'h3',
+        null,
+        status
+      ),
+      React.createElement(
+        'h4',
+        null,
+        action
+      ),
+      React.createElement(
+        'div',
+        { className: 'btn-wrapper' },
+        React.createElement(
+          'button',
+          { className: 'next-turn-button', onClick: handle },
+          text
+        )
+      )
+    );
+  };
+
+  var PlayerWindow = function PlayerWindow(_ref17) {
+    var player = _ref17.player;
 
     return React.createElement(
       'div',
@@ -833,13 +991,17 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
           'h2',
           null,
           'HP: ',
-          player.hp
+          player.hp,
+          ' / ',
+          player.maxHp
         ),
         React.createElement(
           'h2',
           null,
           'AP: ',
-          player.ap
+          player.ap,
+          ' / ',
+          player.maxAp
         )
       ),
       React.createElement(
@@ -890,8 +1052,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var Companion = function Companion(_ref16) {
-    var companion = _ref16.companion;
+  var Companion = function Companion(_ref18) {
+    var companion = _ref18.companion;
 
     return React.createElement(
       'div',
@@ -900,13 +1062,13 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         'h3',
         null,
         'Companion: ',
-        companion ? companion.name : "none"
+        companion ? companion.name + ' (level ' + companion.level + ')' : "none"
       )
     );
   };
 
-  var LogWindow = function LogWindow(_ref17) {
-    var content = _ref17.content;
+  var LogWindow = function LogWindow(_ref19) {
+    var content = _ref19.content;
 
     return React.createElement(
       'div',
@@ -930,8 +1092,8 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     );
   };
 
-  var GameScreen = function GameScreen(_ref18) {
-    var character = _ref18.character;
+  var GameScreen = function GameScreen(_ref20) {
+    var character = _ref20.character;
 
     return React.createElement(
       'div',
