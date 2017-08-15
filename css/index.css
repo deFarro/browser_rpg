@@ -220,11 +220,6 @@ body {
   .next-turn-button:focus {
     outline: none; }
 
-.button-set {
-  position: absolute;
-  bottom: 20px;
-  left: 18%; }
-
 .btn {
   width: 10em;
   height: 2em;

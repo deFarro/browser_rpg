@@ -242,12 +242,6 @@ body {
   display: inline;
 }
 
-.button-set {
-  position: absolute;
-  bottom: 20px;
-  left: 18%;
-}
-
 .btn {
   @include button;
   margin: 0 1em;

@@ -215,7 +215,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         faceContainer: <FaceContainer container={this.getActive.bind(this)} breakLock={this.breakLock.bind(this)} />,
         openSuccess: <OpenSuccess result={this.getActive.bind(this)} player={this.getPlayer.bind(this)} equipPlayer={this.equipItem.bind(this, this.getPlayer.bind(this))} equipCompanion={this.equipItem.bind(this, this.getCompanion.bind(this))} />,
         finishedContainer: <FinishedContainer status={this.getActive.bind(this)} returnToStart={this.returnToStart.bind(this)} />,
-        faceNPC: <FaceNPC npc={this.getActive.bind(this)} next={this.talk.bind(this)} />,
+        faceNPC: <FaceNPC npc={this.getActive.bind(this)} next={this.talk.bind(this)} returnToStart={this.returnToStart.bind(this)} />,
         finishedConversation: <FinishedConversation result={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} returnToStart={this.returnToStart.bind(this)} />
       };
       this.state = {
@@ -309,6 +309,10 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       const result = this.state.player.talk(this.state.active, goal, forced);
       if (typeof result !== "string") {
         this.state.active = result;
+        if (result.item) {
+          this.setState({currentScreen: this.screens.openSuccess});
+          return;
+        }
       }
       this.setState({currentScreen: this.screens.finishedConversation});
     }
@@ -429,12 +433,12 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     const status = result().status;
     return (
       <div>
-        <h3>Container opened.</h3>
+        <h3>{status.result}</h3>
         <h4 className="underline">{status.log}</h4>
         <h4>{status.stats}</h4>
         <div className="btn-wrapper">
           <button className="btn" onClick={equipPlayer}> Equip yourself</button>
-          {player().companion ? <button className="btn" onClick={equipCompanion}>Pass to companion</button> : null}
+          {player().companion ? <button className="btn" onClick={equipCompanion}>To companion</button> : null}
         </div>
       </div>
     )
@@ -456,6 +460,7 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       super(props);
       this.npc = props.npc();
       this.nextAction = props.next;
+      this.returnToStart = props.returnToStart;
       this.buttonSets = [
         {
           title: 'What will you do?',
@@ -484,6 +489,10 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
             {
               text: 'Persuade',
               action: false
+            },
+            {
+              text: 'Go away',
+              action: 'run'
             }
           ]
         }
@@ -499,6 +508,10 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       this.setState({display: this.buttonSets[1]});
     }
     defineTactic(event) {
+      if (event.target.dataset.action === 'run') {
+        this.returnToStart();
+        return;
+      }
       this.state.forced = event.target.dataset.action;
       this.nextAction(this.state.action, this.state.forced);
     }
@@ -526,16 +539,18 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
 
   const FinishedConversation = ({result, startBattle, returnToStart}) => {
     const currentResult = result();
+    let status, action, handle, text;
     if (currentResult instanceof NPC) {
-      var status = `Attempt failed.`;
-      var action = `${currentResult.name} attacks you.`;
-      var handle = startBattle;
-      var text = 'Fight back';
+      status = `Attempt failed.`;
+      action = `${currentResult.name} attacks you.`;
+      handle = startBattle;
+      text = 'Fight back';
     }
     else {
-      var status = currentResult.status;
-      var handle = returnToStart;
-      var text = 'Next turn';
+      status = currentResult.status.result;
+      action = currentResult.status.log;
+      handle = returnToStart;
+      text = 'Next turn';
     }
     return (
       <div>

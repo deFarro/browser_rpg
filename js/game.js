@@ -110,6 +110,7 @@ class Player extends Character {
       if (rand(0,9) + target.lock.level < typeParam + this.luc) {
         let result = {
           status: {
+            result: 'Container opened.',
             log: `${this.name} found ${content.type === 'weapon' ? 'a' : 'an'} ${content.type}:`,
             stats: `${[...content].join(', ')}.`
           },
@@ -159,20 +160,30 @@ class Player extends Character {
   talk(target, ask, forced) {
     let param = forced === 'true' ? 'str' : 'int';
     if (ask === 'heal'){
-      return this.makeToDo(target, this[param], target[param], target.heal, ask);
+      return this.makeToDo(target, this[param], target[param], target.heal, ask, target.weapon);
     }
     if (ask === 'join'){
-      return this.makeToDo(target, this[param], target[param], target.join, ask);
+      return this.makeToDo(target, this[param], target[param], target.join, ask, target.weapon);
     }
     if (ask === 'supply'){
-      return this.makeToDo(target, this[param], target[param], target.supply, ask);
+      return this.makeToDo(target, this[param], target[param], target.supply, ask, target.weapon);
     }
   }
   // Method to attempt threatening or persuading
-  makeToDo(target, typeParamPlayer, typeParamNPC, action, subject) {
+  makeToDo(target, typeParamPlayer, typeParamNPC, action, subject, item) {
     if (typeParamPlayer + Math.floor(this.luc / 2) > typeParamNPC) {
-      let result = {status: `${target.name} has agreed to ${subject} ${this.name}.`};
-      result.fullLog = [action.call(target, this)];
+      let result = {
+        status: {
+          result: 'Attempt succeeded.',
+          log: `${target.name} has agreed to ${subject} ${this.name}.`
+        },
+        fullLog: [action.call(target, this)]
+      };
+      if (subject === 'supply') {
+        result.status.log = `${target.name} passed weapon to ${this.name}:`;
+        result.status.stats = `${[...item].join(', ')}.`;
+        result.item = item;
+      }
       return result;
     }
     else {
@@ -207,7 +218,7 @@ class Enemy extends Character {
 class NextEnemyStats {
   constructor() {
     this.name = enemyNameGenerator();
-    this.level = getRandomLevel();
+    this.level = getNotRandomIndex(1, 20);
     this.stats = this.getEnemyStats();
   }
 
@@ -220,44 +231,18 @@ class NextEnemyStats {
   }
 }
 
-// Функция генерации случайного уровня противника, с учётом того, что более высокие уровни должны генерироваться реже
-function getRandomLevel() {
-  let grade, index = rand(0, 9);
-  switch (index){
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-      grade = [1, 5];
-      break;
-    case 4:
-    case 5:
-    case 6:
-      grade = [6, 10];
-      break;
-    case 7:
-    case 8:
-      grade = [11, 15];
-      break;
-    case 9:
-      grade = [16, 20];
-  }
-  return rand(...grade);
-}
-
 // Класс для NPC, с которыми игрок сможет взаимодействовать
-class NPC extends Enemy{
+class NPC extends Enemy {
   constructor(weapons, armors) {
     super(weapons, armors);
     this.name = npcNameGenerator();
     this.int = 5 + Math.floor(this.level / 2);
   }
-  join(target){
+  join(target) {
     target.companion = this;
     return `${this.name} joined ${target.name}.`;
   }
-  supply(target){
-    target.weapon = this.weapon;
+  supply(target) {
     return `${this.name} passed his weapon to ${target.name}.`;
   }
 }
@@ -271,10 +256,10 @@ class Container {
   }
   get content() {
     if (rand(0, 1)) {
-      return this.weapons[rand(0, this.weapons.length - 1)];
+      return this.weapons[getNotRandomIndex(this.lock.level, this.lock.level + 10)];
     }
     else {
-      return this.armors[rand(0, this.armors.length - 1)];
+      return this.armors[getNotRandomIndex(this.lock.level, this.lock.level + 10)];
     }
   }
 }
@@ -283,8 +268,37 @@ class Lock{
   constructor(){
     this.fortified = rand(0, 1);
     this.electric = rand(0, 1);
-    this.level = rand (1, 10);
+    this.level = getNotRandomIndex(1, 10);
   }
+}
+
+// Function for distributing loot not equally (good items are rare)
+function getNotRandomIndex(from, to) {
+  let grade, index = rand(0, 9);
+  let mid = Math.floor((from + to) / 2);
+  let midS = Math.floor((from + mid) / 2);
+  let midL = Math.floor((mid + to) / 2);
+  switch (index) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      grade = [from, midS];
+      break;
+    case 4:
+    case 5:
+    case 6:
+      grade = [midS, mid];
+      break;
+    case 7:
+    case 8:
+      grade = [mid, midL];
+      break;
+    case 9:
+      grade = [midL, to];
+  }
+  console.log(from, midS, mid, midL, to);
+  return rand(...grade);
 }
 
 // Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
@@ -376,7 +390,7 @@ function* createItems(maxChar, type) {
     let item = {};
     item[type.mainChar] = i + 1;
     item.classLevel = i + 1;
-    item.weight = Math.floor(i * 1.4);
+    item.weight = Math.ceil(i / 2.5);
     if (type.secondChar) {
       item[type.secondChar] = Math.floor(i / 3 + 1);
     }
@@ -485,11 +499,11 @@ var npcNames = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', '
 //--------------------------------------------------------------------------------------------
 // Exporting data for manual Mocha/Chai tests
 //--------------------------------------------------------------------------------------------
-
-module.exports = {
-  Character,
-  Enemy,
-  NextEnemyStats,
-  makeWeaponsArray,
-  makeArmorsArray
-};
+//
+// module.exports = {
+//   Character,
+//   Enemy,
+//   NextEnemyStats,
+//   makeWeaponsArray,
+//   makeArmorsArray
+// };

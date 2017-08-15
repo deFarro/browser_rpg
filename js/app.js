@@ -356,7 +356,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         faceContainer: React.createElement(FaceContainer, { container: _this7.getActive.bind(_this7), breakLock: _this7.breakLock.bind(_this7) }),
         openSuccess: React.createElement(OpenSuccess, { result: _this7.getActive.bind(_this7), player: _this7.getPlayer.bind(_this7), equipPlayer: _this7.equipItem.bind(_this7, _this7.getPlayer.bind(_this7)), equipCompanion: _this7.equipItem.bind(_this7, _this7.getCompanion.bind(_this7)) }),
         finishedContainer: React.createElement(FinishedContainer, { status: _this7.getActive.bind(_this7), returnToStart: _this7.returnToStart.bind(_this7) }),
-        faceNPC: React.createElement(FaceNPC, { npc: _this7.getActive.bind(_this7), next: _this7.talk.bind(_this7) }),
+        faceNPC: React.createElement(FaceNPC, { npc: _this7.getActive.bind(_this7), next: _this7.talk.bind(_this7), returnToStart: _this7.returnToStart.bind(_this7) }),
         finishedConversation: React.createElement(FinishedConversation, { result: _this7.getActive.bind(_this7), startBattle: _this7.startBattle.bind(_this7), returnToStart: _this7.returnToStart.bind(_this7) })
       };
       _this7.state = {
@@ -482,6 +482,10 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         var result = this.state.player.talk(this.state.active, goal, forced);
         if (typeof result !== "string") {
           this.state.active = result;
+          if (result.item) {
+            this.setState({ currentScreen: this.screens.openSuccess });
+            return;
+          }
         }
         this.setState({ currentScreen: this.screens.finishedConversation });
       }
@@ -767,7 +771,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       React.createElement(
         'h3',
         null,
-        'Container opened.'
+        status.result
       ),
       React.createElement(
         'h4',
@@ -790,7 +794,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         player().companion ? React.createElement(
           'button',
           { className: 'btn', onClick: equipCompanion },
-          'Pass to companion'
+          'To companion'
         ) : null
       )
     );
@@ -830,6 +834,7 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
 
       _this10.npc = props.npc();
       _this10.nextAction = props.next;
+      _this10.returnToStart = props.returnToStart;
       _this10.buttonSets = [{
         title: 'What will you do?',
         buttons: [{
@@ -850,6 +855,9 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         }, {
           text: 'Persuade',
           action: false
+        }, {
+          text: 'Go away',
+          action: 'run'
         }]
       }];
       _this10.state = {
@@ -869,6 +877,10 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
     }, {
       key: 'defineTactic',
       value: function defineTactic(event) {
+        if (event.target.dataset.action === 'run') {
+          this.returnToStart();
+          return;
+        }
         this.state.forced = event.target.dataset.action;
         this.nextAction(this.state.action, this.state.forced);
       }
@@ -928,15 +940,20 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         returnToStart = _ref16.returnToStart;
 
     var currentResult = result();
+    var status = void 0,
+        action = void 0,
+        handle = void 0,
+        text = void 0;
     if (currentResult instanceof NPC) {
-      var status = 'Attempt failed.';
-      var action = currentResult.name + ' attacks you.';
-      var handle = startBattle;
-      var text = 'Fight back';
+      status = 'Attempt failed.';
+      action = currentResult.name + ' attacks you.';
+      handle = startBattle;
+      text = 'Fight back';
     } else {
-      var status = currentResult.status;
-      var handle = returnToStart;
-      var text = 'Next turn';
+      status = currentResult.status.result;
+      action = currentResult.status.log;
+      handle = returnToStart;
+      text = 'Next turn';
     }
     return React.createElement(
       'div',
