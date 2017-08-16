@@ -73,10 +73,15 @@ class Player extends Character {
   levelup(stat) {
     this.level++;
     this.levelups.push(stat);
-    let replenishHp = this.hp + this.level * 5;
+    this[this.levelups[this.levelups.length - 1]]++;
+    let replenishHp = this.hp + this.level * 2;
     this.hp = replenishHp > this.maxHp ? this.maxHp : replenishHp;
     this.ap = this.ap + 2 > this.maxAp ? this.maxAp : this.ap + 2;
-    this[this.levelups[this.levelups.length - 1]]++;
+    if (this.companion) {
+      let replenishHp = this.companion.hp + this.companion.level * 2;
+      this.companion.hp = replenishHp > this.companion.maxHp ? this.companion.maxHp : replenishHp;
+      this.companion.ap = this.companion.ap + 2 > this.companion.maxAp ? this.companion.maxAp : this.companion.ap + 2;
+    }
   }
   leveldown() {
     this.level--;
@@ -89,7 +94,7 @@ class Player extends Character {
 // Method to equip an item
   equip(item, target) {
     if (target.str >= item.weight) {
-      if (item.classLevel >= target[item.type].classLevel) {
+      if (item.classLevel > target[item.type].classLevel) {
         target[item.type] = item;
         return `${item.type.charAt(0).toUpperCase() + item.type.slice(1)} equipped.`;
       }
@@ -107,6 +112,7 @@ class Player extends Character {
     const content = target.content;
     if (typeParam >= target.lock.level){
       if (this.ap < 2){
+        this.ap = this.maxAp;
         return 'Not enought AP.';
       }
       this.ap -= 2;
@@ -138,22 +144,26 @@ class Player extends Character {
       return true;
     }
   }
-// Method to heal. Depends on intellect. Without arguments character heals himself
-  heal(target = this) {
+// Method to heal. Depends on intellect
+  heal(target) {
     if (this.ap < 2){
       console.log('Not enought AP.');
       return false;
     }
     this.ap -= 2;
     let regenHp = target.maxHp / 10 * this.int;
-    if (target.hp + regenHp > target.maxHp){
+    if (target.hp + regenHp > target.maxHp) {
       regenHp = target.maxHp - target.hp;
       target.hp = target.maxHp;
     }
     else {
       target.hp += regenHp;
     }
-    return `${this.name} healed ${target.name} by ${regenHp}.`;
+    let log = [`${this.name} healed ${target.name} by ${regenHp}.`];
+    if (target.companion) {
+      log = log.concat(this.heal(target.companion));
+    }
+    return log;
   }
 // Method to replenish Action Points. Player skips his turn (multiplayer only)
   rest(){
@@ -163,24 +173,25 @@ class Player extends Character {
   talk(target, ask, forced) {
     let param = forced === 'true' ? 'str' : 'int';
     if (ask === 'heal'){
-      return this.makeToDo(target, this[param], target[param], target.heal, ask, target.weapon);
+      return this.makeToDo(target, param, this[param], target[param], target.heal, ask, target.weapon);
     }
     if (ask === 'join'){
-      return this.makeToDo(target, this[param], target[param], target.join, ask, target.weapon);
+      return this.makeToDo(target, param, this[param], target[param], target.join, ask, target.weapon);
     }
     if (ask === 'supply'){
-      return this.makeToDo(target, this[param], target[param], target.supply, ask, target.weapon);
+      return this.makeToDo(target, param, this[param], target[param], target.supply, ask, target.weapon);
     }
   }
   // Method to attempt threatening or persuading
-  makeToDo(target, typeParamPlayer, typeParamNPC, action, subject, item) {
-    if (typeParamPlayer + Math.floor(this.luc / 2) > typeParamNPC) {
+  makeToDo(target, param, typeParamPlayer, typeParamNPC, action, subject, item) {
+    let playerParam = param === 'int' ? typeParamPlayer * 2 + this.luc : typeParamPlayer + this.luc;
+    if (playerParam > typeParamNPC) {
       let result = {
         status: {
           result: 'Attempt succeeded.',
           log: `${target.name} has agreed to ${subject} ${this.name}.`
         },
-        fullLog: [action.call(target, this)]
+        fullLog: action.call(target, this)
       };
       if (subject === 'supply') {
         result.status.log = `${target.name} passed weapon to ${this.name}:`;
@@ -239,14 +250,14 @@ class NPC extends Enemy {
   constructor(weapons, armors) {
     super(weapons, armors);
     this.name = npcNameGenerator();
-    this.int = this.level + Math.floor(this.level / 3);
+    this.int = this.level;
   }
   join(target) {
     target.companion = this;
-    return `${this.name} joined ${target.name}.`;
+    return [`${this.name} joined ${target.name}.`];
   }
   supply(target) {
-    return `${this.name} passed his weapon to ${target.name}.`;
+    return [`${this.name} passed his weapon to ${target.name}.`];
   }
 }
 NPC.prototype.heal = Player.prototype.heal;
@@ -303,24 +314,6 @@ function getNotRandomIndex(from, to) {
   return rand(...grade);
 }
 
-// Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
-function startNextTurn(game) {
-  let index = rand(0, 5);
-  switch (index){
-    case 0:
-    case 1:
-    case 2:
-      return new Enemy(game.weapons, game.armors);
-      break;
-    case 3:
-    case 4:
-      return new Container(game.weapons, game.armors);
-      break;
-    case 5:
-      return new NPC(game.weapons, game.armors);
-  }
-}
-
 // Function for generating short battle log
 function battleDisplay(player, enemy){
   return `${enemy.name} HP: ${enemy.hp}/${enemy.maxHp} AP: ${enemy.ap}/${enemy.maxAp}, ${player.name} HP: ${player.hp}/${player.maxHp} AP: ${player.ap}/${player.maxAp}`;
@@ -362,18 +355,21 @@ function battle(side1, side2) {
   };
 }
 
-// Функция для раунда боя (персонаж наносит урон, пока не кончатся AP)
+// Function for a buttle round. Character attacks until he has any action point left
 function battleRound(side1, side2, log) {
   // Проверяем на наличие помощника у цели. Если есть, то решаем кого атаковать (у кого меньше HP)
   if (side2.companion && !side2.companion.dead) {
-    side2 = side2.hp > side2.companion.hp ? side2.companion : side2;
+    side2 = side2.companion;
   }
-  while (side1.ap - side1.weapon.apCost >= 0) {
-    side1.attack(side2, log);
+  if (side2.dead) {
+    return;
+  }
+  side1.attack(side2, log);
+  while (side1.ap - side1.weapon.apCost >= 0 && !side2.dead) {
     if (side2.dead) {
-      //side1.ap = side1.maxAp;
       return;
     }
+    side1.attack(side2, log);
   }
   side1.ap = side1.maxAp;
   // Проверяем на наличие помощника у атакующего. Если есть, то атакует помощник
@@ -384,6 +380,24 @@ function battleRound(side1, side2, log) {
 
 function rand(from, to) {
   return Math.floor(Math.random() * (to - from + 1) + from);
+}
+
+// Function to start new turn. Defines if player meet enemy, NPC or face a container
+function startNextTurn(game) {
+  let index = rand(0, 5);
+  switch (index){
+    case 0:
+    case 1:
+    case 2:
+      return new Enemy(game.weapons, game.armors);
+      break;
+    case 3:
+    case 4:
+      return new Container(game.weapons, game.armors);
+      break;
+    case 5:
+      return new NPC(game.weapons, game.armors);
+  }
 }
 
 // Генератор предметов с разными параметрами. Принимает максимальное значение нужного бонуса и тип
