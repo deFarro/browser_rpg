@@ -18,6 +18,8 @@ class Character {
     this.hp = this.maxHp;
     this.ap = this.maxAp;
     this.level = 0;
+    this.weapon = {demage: 1, apCost: 1};
+    this.armor = {defence: 1};
     this.dead = false;
   }
   get maxHp() {
@@ -41,7 +43,8 @@ class Character {
     }
   }
 // Universal attack method
-  attack(target, log) {
+  attack(target) {
+    let log = [];
     let damage = (this.attackRate - target.defenceRate);
     if (damage <= 0) {
       damage = 1;
@@ -54,6 +57,7 @@ class Character {
       target.dead = true;
       log.push(`${target.name} is dead.`);
     }
+    return log;
   }
 }
 
@@ -147,8 +151,7 @@ class Player extends Character {
 // Method to heal. Depends on intellect
   heal(target) {
     if (this.ap < 2){
-      console.log('Not enought AP.');
-      return false;
+      return ['Not enought AP.'];
     }
     this.ap -= 2;
     let regenHp = target.maxHp / 10 * this.int;
@@ -206,7 +209,6 @@ class Player extends Character {
   }
 }
 // Iterator for going through player's inventory
-
 Player.prototype[Symbol.iterator] = function() {
   var items = [this.weapon, this.armor];
   items = items.concat(this.items);
@@ -228,7 +230,7 @@ class Enemy extends Character {
   }
 }
 
-// Конструктор генерации объекта с данными для создания нового противника
+// Class for constructing an onject with data to create new enemy
 class NextEnemyStats {
   constructor() {
     this.name = enemyNameGenerator();
@@ -236,7 +238,7 @@ class NextEnemyStats {
     this.stats = this.getEnemyStats();
   }
 
-// Функция, которая распределяет уровни противника по характеристикам
+// Function to distribute enemy's levelups among stats
   getEnemyStats() {
     let stats = [], levelups = this.level;
     stats[0] = 1 + Math.ceil(levelups / 2);
@@ -245,7 +247,7 @@ class NextEnemyStats {
   }
 }
 
-// Класс для NPC, с которыми игрок сможет взаимодействовать
+// Class for NPC to interact with
 class NPC extends Enemy {
   constructor(weapons, armors) {
     super(weapons, armors);
@@ -262,6 +264,7 @@ class NPC extends Enemy {
 }
 NPC.prototype.heal = Player.prototype.heal;
 
+// Class for containers with items
 class Container {
   constructor(weapons, armors) {
     this.lock = new Lock();
@@ -278,8 +281,9 @@ class Container {
   }
 }
 
-class Lock{
-  constructor(){
+// Class to lock a container
+class Lock {
+  constructor() {
     this.fortified = rand(0, 1);
     this.electric = rand(0, 1);
     this.level = getNotRandomIndex(1, 10);
@@ -323,26 +327,25 @@ function battle(side1, side2) {
   let status = {};
   status.fullLog = [];
   while (!side1.dead && !side2.dead) {
-    battleRound(side1, side2, status.fullLog);
+    status.fullLog = status.fullLog.concat(battleRound(side1, side2));
     if (side2.dead){
       status.winner = side1;
       break;
     }
-    battleRound(side2, side1, status.fullLog);
+    status.fullLog = status.fullLog.concat(battleRound(side2, side1));
   }
   status.shortLog = battleDisplay(side1, side2);
-  status.fullLog.push(`Battle is over.`);
+  status.fullLog.push('Battle is over.');
   battleDisplay(side1, side2);
   if (side1.dead) {
     status.winner = side2;
     if (side1.companion) {
-      status.fullLog.push(`Companion has left.`);
+      status.fullLog.push('Companion has left.');
       side1.companion = undefined;
     }
     side1.hp = side1.maxHp;
     side1.ap = side1.maxAp;
     if (side1.level > 0) {
-
       status.fullLog.push(side1.leveldown());
     }
     side1.dead = false;
@@ -356,26 +359,28 @@ function battle(side1, side2) {
 }
 
 // Function for a buttle round. Character attacks until he has any action point left
-function battleRound(side1, side2, log) {
-  // Проверяем на наличие помощника у цели. Если есть, то решаем кого атаковать (у кого меньше HP)
+function battleRound(side1, side2) {
+  let log = [];
+  // Check if target character has a companion. If so, attack companion
   if (side2.companion && !side2.companion.dead) {
     side2 = side2.companion;
   }
   if (side2.dead) {
     return;
   }
-  side1.attack(side2, log);
+  log = log.concat(side1.attack(side2));
   while (side1.ap - side1.weapon.apCost >= 0 && !side2.dead) {
     if (side2.dead) {
       return;
     }
-    side1.attack(side2, log);
+    log = log.concat(side1.attack(side2));
   }
   side1.ap = side1.maxAp;
-  // Проверяем на наличие помощника у атакующего. Если есть, то атакует помощник
+  // Check if attacker has a companion. If so, companion attacks
   if (side1.companion && !side1.companion.dead) {
-    battleRound(side1.companion, side2, log);
+    log = log.concat(battleRound(side1.companion, side2));
   }
+  return log;
 }
 
 function rand(from, to) {
@@ -400,7 +405,7 @@ function startNextTurn(game) {
   }
 }
 
-// Генератор предметов с разными параметрами. Принимает максимальное значение нужного бонуса и тип
+// Generator for items with various stats. Takes max value of a stat and type of the item (object with mainChar and secondChar if needed).
 function* createItems(maxChar, type) {
   for (let i = 0; i < maxChar; i++) {
     let item = {};
@@ -410,7 +415,7 @@ function* createItems(maxChar, type) {
     if (type.secondChar) {
       item[type.secondChar] = Math.floor(i / 4 + 1);
     }
-// Итератор для листания свойств предмета
+// Iteration for going through item's stats ignoring utility properties
   item[Symbol.iterator] = function() {
     let stats = Object.keys(item);
     stats = stats.map(stat => {return [stat] + ": " + item[stat]})
@@ -426,7 +431,7 @@ function* createItems(maxChar, type) {
   }
 }
 
-// Генератор массива оружия с разными параметрами
+// Function to generate array with weapons
 function makeWeaponsArray(maxDem) {
   var weapons = [];
   for (let weapon of createItems(maxDem, {mainChar: 'demage', secondChar: 'apCost'})){
@@ -436,7 +441,7 @@ function makeWeaponsArray(maxDem) {
   return weapons;
 }
 
-// Генератор массива брони с разными параметрами
+// Function to generate array with armors
 function makeArmorsArray(maxDef) {
   var armors = [];
   for (let armor of createItems(maxDef, {mainChar: 'defence'})) {
@@ -446,16 +451,16 @@ function makeArmorsArray(maxDef) {
   return armors;
 }
 
-// Генератор имён роботов
+// Function to generate enemy names
 function enemyNameGenerator() {
   return 'RD-' + rand(1000, 9999);
 }
 
-// Генератор человеческих имён
+// Function to generate NPC's names
 function npcNameGenerator() {
-  return npcNames[0][rand(0, 4)] + ' ' + npcNames[1][rand(0, 4)];
+  return NPC_NAMES[0][rand(0, 4)] + ' ' + NPC_NAMES[1][rand(0, 4)];
 }
-var npcNames = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', 'Green', 'White', 'Grey']];
+const NPC_NAMES = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', 'Green', 'White', 'Grey']];
 
 //--------------------------------------------------------------------------------------------
 // Initialize items and character using promises (for multiplayer, when fetching is needed)
@@ -515,11 +520,18 @@ var npcNames = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown', '
 //--------------------------------------------------------------------------------------------
 // Exporting data for manual Mocha/Chai tests
 //--------------------------------------------------------------------------------------------
-//
+// 
 // module.exports = {
 //   Character,
 //   Enemy,
+//   NPC,
+//   Player,
+//   Container,
+//   Lock,
 //   NextEnemyStats,
+//   createItems,
 //   makeWeaponsArray,
-//   makeArmorsArray
+//   makeArmorsArray,
+//   battle,
+//   battleRound
 // };
