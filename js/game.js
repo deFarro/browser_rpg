@@ -73,6 +73,9 @@ class Player extends Character {
   levelup(stat) {
     this.level++;
     this.levelups.push(stat);
+    let replenishHp = this.hp + this.level * 5;
+    this.hp = replenishHp > this.maxHp ? this.maxHp : replenishHp;
+    this.ap = this.ap + 2 > this.maxAp ? this.maxAp : this.ap + 2;
     this[this.levelups[this.levelups.length - 1]]++;
   }
   leveldown() {
@@ -107,7 +110,7 @@ class Player extends Character {
         return 'Not enought AP.';
       }
       this.ap -= 2;
-      if (rand(0,9) + target.lock.level < typeParam + this.luc) {
+      if (target.lock.level <= typeParam + this.luc) {
         let result = {
           status: {
             result: 'Container opened.',
@@ -236,7 +239,7 @@ class NPC extends Enemy {
   constructor(weapons, armors) {
     super(weapons, armors);
     this.name = npcNameGenerator();
-    this.int = 5 + Math.floor(this.level / 2);
+    this.int = this.level + Math.floor(this.level / 3);
   }
   join(target) {
     target.companion = this;
@@ -297,13 +300,12 @@ function getNotRandomIndex(from, to) {
     case 9:
       grade = [midL, to];
   }
-  console.log(from, midS, mid, midL, to);
   return rand(...grade);
 }
 
 // Функция начала следующего хода - определяет что будет перед игроком - противник, контейнер или NPC
 function startNextTurn(game) {
-  let index = rand(5, 5);
+  let index = rand(0, 5);
   switch (index){
     case 0:
     case 1:
@@ -366,9 +368,9 @@ function battleRound(side1, side2, log) {
   if (side2.companion && !side2.companion.dead) {
     side2 = side2.hp > side2.companion.hp ? side2.companion : side2;
   }
-  while (side1.ap - side1.weapon.apCost >= 0){
+  while (side1.ap - side1.weapon.apCost >= 0) {
     side1.attack(side2, log);
-    if (side2.dead){
+    if (side2.dead) {
       //side1.ap = side1.maxAp;
       return;
     }
@@ -392,7 +394,7 @@ function* createItems(maxChar, type) {
     item.classLevel = i + 1;
     item.weight = Math.ceil(i / 2.5);
     if (type.secondChar) {
-      item[type.secondChar] = Math.floor(i / 3 + 1);
+      item[type.secondChar] = Math.floor(i / 4 + 1);
     }
 // Итератор для листания свойств предмета
   item[Symbol.iterator] = function() {

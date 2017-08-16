@@ -200,7 +200,8 @@ body {
   .status {
     @include flex-container($just: space-around);
     border-bottom: 1px solid black;
-    h2 {
+    h2,
+    h3 {
       margin: 0.5rem;
     }
   }
@@ -213,12 +214,17 @@ body {
       margin: 0.5em;
     }
   }
-  .companion {
-    height: 40%;
-    width: 100%;
-    position: absolute;
-    bottom: 0px;
-    border-top: 1px solid black;
+}
+
+.companion {
+  height: 40%;
+  width: 100%;
+  position: absolute;
+  bottom: 0px;
+  border-top: 4px solid black;
+  h3,
+  h4 {
+    margin: 0.5em;
   }
 }
 

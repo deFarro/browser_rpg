@@ -177,7 +177,8 @@ body {
     flex-direction: row;
     flex-wrap: wrap;
     border-bottom: 1px solid black; }
-    .player-window .status h2 {
+    .player-window .status h2,
+    .player-window .status h3 {
       margin: 0.5rem; }
   .player-window .items {
     display: flex;
@@ -187,12 +188,16 @@ body {
     border-bottom: 1px solid black; }
   .player-window .stats p {
     margin: 0.5em; }
-  .player-window .companion {
-    height: 40%;
-    width: 100%;
-    position: absolute;
-    bottom: 0px;
-    border-top: 1px solid black; }
+
+.companion {
+  height: 40%;
+  width: 100%;
+  position: absolute;
+  bottom: 0px;
+  border-top: 4px solid black; }
+  .companion h3,
+  .companion h4 {
+    margin: 0.5em; }
 
 .log-window {
   border: 2px solid black;

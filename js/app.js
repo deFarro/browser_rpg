@@ -131,10 +131,10 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
 
       _this4.switchToGame = props.doNext;
       _this4.state = {
-        statsRemain: 0,
+        statsRemain: 10,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [0, 20, 20, 0],
+        stats: [0, 0, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       };
@@ -384,6 +384,11 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         }, 600);
       }
     }, {
+      key: 'componentDidUpdate',
+      value: function componentDidUpdate() {
+        this.checkCompanion();
+      }
+    }, {
       key: 'startTurn',
       value: function startTurn() {
         var nextAction = startNextTurn(this);
@@ -494,6 +499,13 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
       value: function returnToStart() {
         this.state.active = '';
         this.setState({ currentScreen: this.screens.nextTurn });
+      }
+    }, {
+      key: 'checkCompanion',
+      value: function checkCompanion() {
+        if (this.state.player.companion && this.state.player.companion.dead) {
+          this.state.player.companion = undefined;
+        }
       }
     }, {
       key: 'render',
@@ -1072,6 +1084,17 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
   var Companion = function Companion(_ref18) {
     var companion = _ref18.companion;
 
+    if (!companion) {
+      return React.createElement(
+        'div',
+        { className: 'companion' },
+        React.createElement(
+          'h3',
+          null,
+          'Companion: none'
+        )
+      );
+    }
     return React.createElement(
       'div',
       { className: 'companion' },
@@ -1079,7 +1102,61 @@ requirejs(['react', 'react_dom', 'game'], function (React, ReactDOM) {
         'h3',
         null,
         'Companion: ',
-        companion ? companion.name + ' (level ' + companion.level + ')' : "none"
+        companion.name,
+        ' (level ',
+        companion.level,
+        ')'
+      ),
+      React.createElement(
+        'div',
+        { className: 'status' },
+        React.createElement(
+          'h3',
+          null,
+          'HP: ',
+          companion.hp,
+          '/',
+          companion.maxHp
+        ),
+        React.createElement(
+          'h3',
+          null,
+          'AP: ',
+          companion.ap,
+          '/',
+          companion.maxAp
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'status' },
+        React.createElement(
+          'h4',
+          null,
+          'Weapon demage: ',
+          companion.weapon.demage
+        ),
+        React.createElement(
+          'h4',
+          null,
+          'Armor defence: ',
+          companion.armor.defence
+        )
+      ),
+      React.createElement(
+        'h3',
+        null,
+        'STATS:'
+      ),
+      React.createElement(
+        'h4',
+        null,
+        'STR:',
+        companion.str,
+        ' DEX:',
+        companion.dex,
+        ' INT:',
+        companion.int
       )
     );
   };

@@ -75,10 +75,10 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
       super();
       this.switchToGame = props.doNext;
       this.state = {
-        statsRemain: 0,
+        statsRemain: 10,
         name: 'Jack',
         // To add/remove stat to the setup form just change these two following arrays
-        stats: [0, 20, 20, 0],
+        stats: [0, 0, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
         className: 'startButton'
       }
@@ -236,6 +236,9 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
         this.gameEl.classList.remove('hidden');
       }, 600);
     }
+    componentDidUpdate() {
+      this.checkCompanion();
+    }
     startTurn() {
       const nextAction = startNextTurn(this);
       this.state.active = nextAction;
@@ -319,6 +322,11 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
     returnToStart() {
       this.state.active = '';
       this.setState({currentScreen: this.screens.nextTurn});
+    }
+    checkCompanion() {
+      if (this.state.player.companion && this.state.player.companion.dead) {
+        this.state.player.companion = undefined;
+      }
     }
     render() {
       return (
@@ -590,9 +598,26 @@ requirejs(['react', 'react_dom', 'game'], function(React, ReactDOM) {
   }
 
   const Companion = ({companion}) => {
+    if (!companion) {
+      return (
+        <div className="companion">
+          <h3>Companion: none</h3>
+        </div>
+      );
+    }
     return (
       <div className="companion">
-        <h3>Companion: {companion ? `${companion.name} (level ${companion.level})` : "none"}</h3>
+        <h3>Companion: {companion.name} (level {companion.level})</h3>
+        <div className="status">
+          <h3>HP: {companion.hp}/{companion.maxHp}</h3>
+          <h3>AP: {companion.ap}/{companion.maxAp}</h3>
+        </div>
+        <div className="status">
+          <h4>Weapon demage: {companion.weapon.demage}</h4>
+          <h4>Armor defence: {companion.armor.defence}</h4>
+        </div>
+        <h3>STATS:</h3>
+        <h4>STR:{companion.str} DEX:{companion.dex} INT:{companion.int}</h4>
       </div>
     )
   }
