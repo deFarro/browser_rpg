@@ -521,18 +521,20 @@ const NPC_NAMES = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown'
 //--------------------------------------------------------------------------------------------
 // Exporting data for manual Mocha/Chai tests
 //--------------------------------------------------------------------------------------------
-//
-// module.exports = {
-//   Character,
-//   Enemy,
-//   NPC,
-//   Player,
-//   Container,
-//   Lock,
-//   NextEnemyStats,
-//   createItems,
-//   makeWeaponsArray,
-//   makeArmorsArray,
-//   battle,
-//   battleRound
-// };
+
+if (module) {
+  module.exports = {
+    Character,
+    Enemy,
+    NPC,
+    Player,
+    Container,
+    Lock,
+    NextEnemyStats,
+    createItems,
+    makeWeaponsArray,
+    makeArmorsArray,
+    battle,
+    battleRound
+  };
+}
