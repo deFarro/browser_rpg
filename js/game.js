@@ -188,7 +188,8 @@ class Player extends Character {
   // Method to attempt threatening or persuading
   makeToDo(target, param, typeParamPlayer, typeParamNPC, action, subject, item) {
     let playerParam = param === 'int' ? typeParamPlayer * 2 + this.luc : typeParamPlayer + this.luc;
-    if (playerParam > typeParamNPC) {
+    let npcParam = param === 'str' ? target.level : typeParamNPC;
+    if (playerParam > npcParam) {
       let result = {
         status: {
           result: 'Attempt succeeded.',
@@ -520,7 +521,7 @@ const NPC_NAMES = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown'
 //--------------------------------------------------------------------------------------------
 // Exporting data for manual Mocha/Chai tests
 //--------------------------------------------------------------------------------------------
-// 
+//
 // module.exports = {
 //   Character,
 //   Enemy,
