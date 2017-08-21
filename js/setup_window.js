@@ -64,11 +64,11 @@ define(['react'], function (React) {
       _this3.switchToGame = props.doNext;
       _this3.state = {
         statsRemain: 10,
-        name: 'Jack',
-        // To add/remove stat to the setup form just change these two following arrays
+        name: '',
         stats: [0, 0, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
-        className: 'startButton'
+        className: 'startButton',
+        showTip: false
       };
       return _this3;
     }
@@ -90,8 +90,10 @@ define(['react'], function (React) {
         var cName = event.target.value;
         // Only numbers, spaces, underscores and english letters are eligible
         if (/^[\w ]{0,20}$/.test(cName)) {
+          this.setState({ showTip: false });
           this.setState({ name: cName });
         } else {
+          this.setState({ showTip: true });
           return;
         }
       }
@@ -160,7 +162,7 @@ define(['react'], function (React) {
             { ref: function ref(element) {
                 return _this5.formEl = element;
               }, className: 'hidden' },
-            React.createElement(NameField, { onChange: this.enterName.bind(this), value: this.state.name }),
+            React.createElement(NameField, { onChange: this.enterName.bind(this), value: this.state.name, showTip: this.state.showTip }),
             fieldSet,
             React.createElement(
               'p',
@@ -181,12 +183,18 @@ define(['react'], function (React) {
 
   var NameField = function NameField(_ref) {
     var onChange = _ref.onChange,
-        value = _ref.value;
+        value = _ref.value,
+        showTip = _ref.showTip;
 
     return React.createElement(
       'div',
-      null,
-      React.createElement('input', { className: 'name-field', type: 'text', placeholder: 'Name', onChange: onChange, value: value })
+      { className: 'name-input-block' },
+      React.createElement('input', { className: 'name-field', type: 'text', placeholder: 'Name', onChange: onChange, value: value }),
+      showTip ? React.createElement(
+        'p',
+        { className: 'tip' },
+        '* english letters and numbers only'
+      ) : null
     );
   };
 

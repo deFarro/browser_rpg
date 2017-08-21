@@ -53,6 +53,7 @@ body {
 .name-field {
   font-size: 0.7em;
   font-family: Andale Mono, sans-serif;
+  line-height: 1.5em;
   margin-bottom: 1em;
   text-align: center;
   border: none;
@@ -60,6 +61,16 @@ body {
   .name-field:focus {
     outline: none;
     border-bottom: 2px solid grey; }
+
+.name-input-block {
+  position: relative; }
+  .name-input-block .tip {
+    position: absolute;
+    top: 2em;
+    right: 1em;
+    white-space: nowrap;
+    font-size: 0.5em;
+    font-family: Andale Mono, sans-serif; }
 
 .stat-field {
   display: flex;

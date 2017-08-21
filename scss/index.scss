@@ -64,6 +64,7 @@ body {
 
 .name-field {
   @include text-styling(0.7em);
+  line-height: 1.5em;
   margin-bottom: 1em;
   text-align: center;
   border: none;
@@ -71,6 +72,17 @@ body {
   &:focus {
     outline: none;
     border-bottom: 2px solid grey;
+  }
+}
+
+.name-input-block {
+  position: relative;
+  .tip {
+    position: absolute;
+    top: 2em;
+    right: 1em;
+    white-space: nowrap;
+    @include text-styling(0.5em);
   }
 }
 

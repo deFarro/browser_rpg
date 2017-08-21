@@ -28,11 +28,11 @@ define(['react'], function (React) {
       this.switchToGame = props.doNext;
       this.state = {
         statsRemain: 10,
-        name: 'Jack',
-        // To add/remove stat to the setup form just change these two following arrays
+        name: '',
         stats: [0, 0, 0, 0],
         statNames: ['strength', 'dexterity', 'intellect', 'luck'],
-        className: 'startButton'
+        className: 'startButton',
+        showTip: false
       }
     }
     componentDidMount() {
@@ -46,9 +46,11 @@ define(['react'], function (React) {
       const cName = event.target.value;
       // Only numbers, spaces, underscores and english letters are eligible
       if (/^[\w ]{0,20}$/.test(cName)) {
+        this.setState({showTip: false});
         this.setState({name: cName});
       }
       else {
+        this.setState({showTip: true});
         return;
       }
     }
@@ -94,7 +96,7 @@ define(['react'], function (React) {
         <div className={this.state.className}>
           <p>SETUP YOUR CHARACTER</p>
           <form ref={element => this.formEl = element} className="hidden">
-            <NameField onChange={this.enterName.bind(this)} value={this.state.name}/>
+            <NameField onChange={this.enterName.bind(this)} value={this.state.name} showTip={this.state.showTip} />
             {fieldSet}
             <p className="remain-stats">STATS REMAIN: {this.state.statsRemain}</p>
           </form>
@@ -104,10 +106,11 @@ define(['react'], function (React) {
     }
   }
 
-  const NameField = ({onChange, value}) => {
+  const NameField = ({onChange, value, showTip}) => {
     return (
-      <div>
+      <div className="name-input-block">
         <input className="name-field" type="text" placeholder="Name" onChange={onChange} value={value}></input>
+        {showTip ? <p className="tip">* english letters and numbers only</p> : null}
       </div>
     )
   }
