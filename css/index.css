@@ -265,8 +265,19 @@ body {
   position: absolute;
   bottom: 20px; }
 
+.game-over {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  flex-wrap: no-wrap; }
+  .game-over .btn {
+    width: auto;
+    margin: 1em auto; }
+
 /* Active classes ---------------------- */
 .hidden {
-  opacity: 0; }
+  opacity: 0;
+  cursor: default; }
 
 /*# sourceMappingURL=index.css.map */

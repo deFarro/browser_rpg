@@ -123,8 +123,10 @@ define(['react'], function (React) {
       key: 'checkIfReady',
       value: function checkIfReady() {
         if (this.state.statsRemain === 0 && this.state.name) {
+          this.createButton.disabled = false;
           this.createButton.classList.remove('hidden');
         } else {
+          this.createButton.disabled = true;
           this.createButton.classList.add('hidden');
         }
       }

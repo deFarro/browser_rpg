@@ -45,7 +45,8 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
         faceItem: React.createElement(FaceItem, { result: _this.getActive.bind(_this), player: _this.getPlayer.bind(_this), equipPlayer: _this.equipItem.bind(_this, _this.getPlayer.bind(_this)), equipCompanion: _this.equipItem.bind(_this, _this.getCompanion.bind(_this)) }),
         finishedContainer: React.createElement(FinishedContainer, { status: _this.getActive.bind(_this), returnToStart: _this.returnToStart.bind(_this) }),
         faceNPC: React.createElement(FaceNPC, { npc: _this.getActive.bind(_this), next: _this.talk.bind(_this), returnToStart: _this.returnToStart.bind(_this) }),
-        finishedConversation: React.createElement(FinishedConversation, { result: _this.getActive.bind(_this), startBattle: _this.startBattle.bind(_this), returnToStart: _this.returnToStart.bind(_this) })
+        finishedConversation: React.createElement(FinishedConversation, { result: _this.getActive.bind(_this), startBattle: _this.startBattle.bind(_this), returnToStart: _this.returnToStart.bind(_this) }),
+        gameOver: React.createElement(GameOver, null)
       };
       _this.state = {
         currentScreen: React.createElement(NextTurnButton, { startTurn: _this.startTurn.bind(_this) }),
@@ -75,6 +76,7 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
       key: 'componentDidUpdate',
       value: function componentDidUpdate() {
         this.checkCompanion();
+        this.checkLevel();
       }
     }, {
       key: 'startTurn',
@@ -193,6 +195,13 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
       value: function checkCompanion() {
         if (this.state.player.companion && this.state.player.companion.dead) {
           this.state.player.companion = undefined;
+        }
+      }
+    }, {
+      key: 'checkLevel',
+      value: function checkLevel() {
+        if (this.state.player.level >= 20) {
+          this.setState({ currentScreen: this.screens.gameOver });
         }
       }
     }, {
@@ -459,6 +468,41 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
       { className: 'fullscreen' },
       React.createElement(GameTitle, { appliedClass: 'clickedTitle' }),
       React.createElement(GameWindow, { player: character })
+    );
+  };
+
+  var GameOver = function GameOver() {
+    var reload = function reload() {
+      window.location.reload();
+    };
+    return React.createElement(
+      'div',
+      { className: 'game-over' },
+      React.createElement(
+        'h1',
+        null,
+        'Congratulations! You won!'
+      ),
+      React.createElement(
+        'h3',
+        null,
+        'Maximum level is 20.'
+      ),
+      React.createElement(
+        'h5',
+        null,
+        'Things will get much more interesting when you are able to play with friends.'
+      ),
+      React.createElement(
+        'h5',
+        null,
+        'Multiplayer is coming soon (or not so soon).'
+      ),
+      React.createElement(
+        'button',
+        { className: 'btn', onClick: reload },
+        'Back to title screen'
+      )
     );
   };
 

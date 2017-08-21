@@ -38,7 +38,8 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
         faceItem: <FaceItem result={this.getActive.bind(this)} player={this.getPlayer.bind(this)} equipPlayer={this.equipItem.bind(this, this.getPlayer.bind(this))} equipCompanion={this.equipItem.bind(this, this.getCompanion.bind(this))} />,
         finishedContainer: <FinishedContainer status={this.getActive.bind(this)} returnToStart={this.returnToStart.bind(this)} />,
         faceNPC: <FaceNPC npc={this.getActive.bind(this)} next={this.talk.bind(this)} returnToStart={this.returnToStart.bind(this)} />,
-        finishedConversation: <FinishedConversation result={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} returnToStart={this.returnToStart.bind(this)} />
+        finishedConversation: <FinishedConversation result={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} returnToStart={this.returnToStart.bind(this)} />,
+        gameOver: <GameOver />
       };
       this.state = {
       currentScreen: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
@@ -60,6 +61,7 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
     }
     componentDidUpdate() {
       this.checkCompanion();
+      this.checkLevel();
     }
     startTurn() {
       const nextAction = startNextTurn(this);
@@ -148,6 +150,11 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
     checkCompanion() {
       if (this.state.player.companion && this.state.player.companion.dead) {
         this.state.player.companion = undefined;
+      }
+    }
+    checkLevel() {
+      if (this.state.player.level >= 20) {
+        this.setState({currentScreen: this.screens.gameOver});
       }
     }
     render() {
@@ -252,6 +259,21 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
       <div className="fullscreen">
         <GameTitle appliedClass="clickedTitle" />
         <GameWindow player={character} />
+      </div>
+    )
+  }
+
+  const GameOver = () => {
+    const reload = () => {
+      window.location.reload();
+    }
+    return (
+      <div className="game-over">
+        <h1>Congratulations! You won!</h1>
+        <h3>Maximum level is 20.</h3>
+        <h5>Things will get much more interesting when you are able to play with friends.</h5>
+        <h5>Multiplayer is coming soon (or not so soon).</h5>
+        <button className="btn" onClick={reload}>Back to title screen</button>
       </div>
     )
   }

@@ -282,8 +282,18 @@ body {
   bottom: 20px;
 }
 
+.game-over {
+  height: 100%;
+  @include flex-container($dir: column, $just: center, $wrap: no-wrap);
+  .btn {
+    width: auto;
+    margin: 1em auto;
+  }
+}
+
 /* Active classes ---------------------- */
 
 .hidden {
   opacity: 0;
+  cursor: default;
 }

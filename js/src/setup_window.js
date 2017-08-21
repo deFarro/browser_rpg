@@ -73,9 +73,11 @@ define(['react'], function (React) {
     }
     checkIfReady() {
       if(this.state.statsRemain === 0 && this.state.name) {
+        this.createButton.disabled = false;
         this.createButton.classList.remove('hidden');
       }
       else {
+        this.createButton.disabled = true;
         this.createButton.classList.add('hidden');
       }
     }
@@ -100,7 +102,7 @@ define(['react'], function (React) {
             {fieldSet}
             <p className="remain-stats">STATS REMAIN: {this.state.statsRemain}</p>
           </form>
-          <CreateCharButton onClick={this.handleSubmit.bind(this)} controlView={(element) => this.createButton = element}/>
+          <CreateCharButton onClick={this.handleSubmit.bind(this)} controlView={(element) => this.createButton = element} />
         </div>
       )
     }

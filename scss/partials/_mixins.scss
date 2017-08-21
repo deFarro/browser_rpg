@@ -1,8 +1,8 @@
-@mixin flex-container($dir: row, $just: center) {
+@mixin flex-container($dir: row, $just: center, $wrap: wrap) {
   display: flex;
   justify-content: $just;
   flex-direction: $dir;
-  flex-wrap: wrap;
+  flex-wrap: $wrap;
 }
 
 @mixin outline($color: black) {

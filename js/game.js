@@ -521,20 +521,24 @@ const NPC_NAMES = [['Jack', 'Nick', 'Mike', 'Jimmy', 'Frank'], ['Black', 'Brown'
 //--------------------------------------------------------------------------------------------
 // Exporting data for manual Mocha/Chai tests
 //--------------------------------------------------------------------------------------------
-
-if (module) {
-  module.exports = {
-    Character,
-    Enemy,
-    NPC,
-    Player,
-    Container,
-    Lock,
-    NextEnemyStats,
-    createItems,
-    makeWeaponsArray,
-    makeArmorsArray,
-    battle,
-    battleRound
-  };
+try {
+  if (module) {
+    module.exports = {
+      Character,
+      Enemy,
+      NPC,
+      Player,
+      Container,
+      Lock,
+      NextEnemyStats,
+      createItems,
+      makeWeaponsArray,
+      makeArmorsArray,
+      battle,
+      battleRound
+    };
+  }
+}
+catch(err) {
+  console.log('App is open in a browser. Node.js functionality is not needed.');
 }
