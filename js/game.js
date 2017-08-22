@@ -235,7 +235,7 @@ class Enemy extends Character {
 class NextEnemyStats {
   constructor() {
     this.name = enemyNameGenerator();
-    this.level = getNotRandomIndex(1, 20);
+    this.level = getNotRandomIndex(1, 25);
     this.stats = this.getEnemyStats();
   }
 
@@ -291,7 +291,7 @@ class Lock {
   }
 }
 
-// Function for distributing loot not equally (good items are rare)
+// Function to distribute loot not equally (good items are rare)
 function getNotRandomIndex(from, to) {
   let grade, index = rand(0, 9);
   let mid = Math.floor((from + to) / 2);
@@ -319,11 +319,11 @@ function getNotRandomIndex(from, to) {
   return rand(...grade);
 }
 
-// Function for generating short battle log
+// Function to generate short battle log
 function battleDisplay(player, enemy){
   return `${enemy.name} HP: ${enemy.hp}/${enemy.maxHp} AP: ${enemy.ap}/${enemy.maxAp}, ${player.name} HP: ${player.hp}/${player.maxHp} AP: ${player.ap}/${player.maxAp}`;
 }
-// Function for a fight
+// Function to fight
 function battle(side1, side2) {
   let status = {};
   status.fullLog = [];

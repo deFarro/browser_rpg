@@ -29,9 +29,10 @@ define(['react', 'game_window_fight', 'game_window_container', 'game_window_npc'
       var _this = _possibleConstructorReturn(this, (GameWindow.__proto__ || Object.getPrototypeOf(GameWindow)).call(this, props));
 
       _this.playerStats = props;
-      _this.weapons = makeWeaponsArray(25);
-      _this.armors = makeArmorsArray(25);
+      _this.weapons = makeWeaponsArray(30);
+      _this.armors = makeArmorsArray(30);
       _this.statUpgrade = 'str';
+      // List of all possible game screens
       _this.screens = {
         nextTurn: React.createElement(NextTurnButton, { startTurn: _this.startTurn.bind(_this) }),
         faceEnemy: React.createElement(FaceEnemy, { enemy: _this.getActive.bind(_this), startBattle: _this.startBattle.bind(_this), escape: _this.escape.bind(_this) }),

@@ -23,9 +23,10 @@ define(['react', 'game_window_fight', 'game_window_container', 'game_window_npc'
     constructor(props) {
       super(props);
       this.playerStats = props;
-      this.weapons = makeWeaponsArray(25);
-      this.armors = makeArmorsArray(25);
+      this.weapons = makeWeaponsArray(30);
+      this.armors = makeArmorsArray(30);
       this.statUpgrade = 'str';
+      // List of all possible game screens
       this.screens = {
         nextTurn: <NextTurnButton startTurn={this.startTurn.bind(this)} />,
         faceEnemy: <FaceEnemy enemy={this.getActive.bind(this)} startBattle={this.startBattle.bind(this)} escape={this.escape.bind(this)}/>,
