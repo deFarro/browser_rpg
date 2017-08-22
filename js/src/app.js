@@ -11,12 +11,10 @@ requirejs.config({
 requirejs(['react', 'react_dom', 'setup_window', 'game_window', 'game'], function(React, ReactDOM, setupWindow, gameWindow) {
 
 const {
-    GameTitle,
     SetupWindow,
     NameField,
     StatField,
-    CreateCharButton,
-    SetupScreen
+    CreateCharButton
   } = setupWindow;
 
   const {
@@ -42,9 +40,13 @@ const {
   class MainWindow extends React.Component {
     constructor() {
       super();
-      this.state = {visible: 'titleScreen'};
+      this.state = {
+        visible: 'titleScreen',
+        title: 'gameTitle'
+      };
     }
     switchToSetup() {
+      this.setState({title: 'clickedTitle'});
       this.setState({visible: 'setupScreen'});
     }
     switchToGameScreen(player) {
@@ -52,29 +54,35 @@ const {
       this.setState({visible: 'gameScreen'});
     }
     render() {
+      let currentScreen;
       if (this.state.visible === 'titleScreen') {
-        return <TitleScreen clickHandler={this.switchToSetup.bind(this)}/>
+        currentScreen = <StartButton clickHandler={this.switchToSetup.bind(this)}/>;
       }
       else if (this.state.visible === 'setupScreen') {
-        return <SetupScreen switchToGame={this.switchToGameScreen.bind(this)}/>
+        currentScreen = <SetupWindow doNext={this.switchToGameScreen.bind(this)}/>;
       }
       else if (this.state.visible === 'gameScreen') {
-        return <GameScreen character={this.state.character} />
+        currentScreen = <GameScreen character={this.state.character} />;
       }
+      return (
+        <div className="game">
+          <GameTitle appliedClass={this.state.title} />
+          {currentScreen}
+        </div>
+      )
     }
+  }
+
+  const GameTitle = ({appliedClass}) => {
+    return (
+      <div className="title-wrapper">
+        <h1 className={appliedClass}>Future In The Past</h1>
+      </div>
+    )
   }
 
   const StartButton = ({clickHandler}) => {
     return <p className="startButton" onClick={clickHandler}>START ADVENTURES</p>
-  }
-
-  const TitleScreen = ({clickHandler}) => {
-    return (
-      <div>
-        <GameTitle appliedClass="gameTitle"/>
-        <StartButton clickHandler={clickHandler} />
-      </div>
-    )
   }
 
   ReactDOM.render(<MainWindow />, document.getElementById('root'));

@@ -17,12 +17,10 @@ requirejs.config({
 });
 
 requirejs(['react', 'react_dom', 'setup_window', 'game_window', 'game'], function (React, ReactDOM, setupWindow, gameWindow) {
-  var GameTitle = setupWindow.GameTitle,
-      SetupWindow = setupWindow.SetupWindow,
+  var SetupWindow = setupWindow.SetupWindow,
       NameField = setupWindow.NameField,
       StatField = setupWindow.StatField,
-      CreateCharButton = setupWindow.CreateCharButton,
-      SetupScreen = setupWindow.SetupScreen;
+      CreateCharButton = setupWindow.CreateCharButton;
   var GameWindow = gameWindow.GameWindow,
       GameFlowWindow = gameWindow.GameFlowWindow,
       NextTurnButton = gameWindow.NextTurnButton,
@@ -49,13 +47,17 @@ requirejs(['react', 'react_dom', 'setup_window', 'game_window', 'game'], functio
 
       var _this = _possibleConstructorReturn(this, (MainWindow.__proto__ || Object.getPrototypeOf(MainWindow)).call(this));
 
-      _this.state = { visible: 'titleScreen' };
+      _this.state = {
+        visible: 'titleScreen',
+        title: 'gameTitle'
+      };
       return _this;
     }
 
     _createClass(MainWindow, [{
       key: 'switchToSetup',
       value: function switchToSetup() {
+        this.setState({ title: 'clickedTitle' });
         this.setState({ visible: 'setupScreen' });
       }
     }, {
@@ -67,37 +69,47 @@ requirejs(['react', 'react_dom', 'setup_window', 'game_window', 'game'], functio
     }, {
       key: 'render',
       value: function render() {
+        var currentScreen = void 0;
         if (this.state.visible === 'titleScreen') {
-          return React.createElement(TitleScreen, { clickHandler: this.switchToSetup.bind(this) });
+          currentScreen = React.createElement(StartButton, { clickHandler: this.switchToSetup.bind(this) });
         } else if (this.state.visible === 'setupScreen') {
-          return React.createElement(SetupScreen, { switchToGame: this.switchToGameScreen.bind(this) });
+          currentScreen = React.createElement(SetupWindow, { doNext: this.switchToGameScreen.bind(this) });
         } else if (this.state.visible === 'gameScreen') {
-          return React.createElement(GameScreen, { character: this.state.character });
+          currentScreen = React.createElement(GameScreen, { character: this.state.character });
         }
+        return React.createElement(
+          'div',
+          { className: 'game' },
+          React.createElement(GameTitle, { appliedClass: this.state.title }),
+          currentScreen
+        );
       }
     }]);
 
     return MainWindow;
   }(React.Component);
 
-  var StartButton = function StartButton(_ref) {
-    var clickHandler = _ref.clickHandler;
+  var GameTitle = function GameTitle(_ref) {
+    var appliedClass = _ref.appliedClass;
+
+    return React.createElement(
+      'div',
+      { className: 'title-wrapper' },
+      React.createElement(
+        'h1',
+        { className: appliedClass },
+        'Future In The Past'
+      )
+    );
+  };
+
+  var StartButton = function StartButton(_ref2) {
+    var clickHandler = _ref2.clickHandler;
 
     return React.createElement(
       'p',
       { className: 'startButton', onClick: clickHandler },
       'START ADVENTURES'
-    );
-  };
-
-  var TitleScreen = function TitleScreen(_ref2) {
-    var clickHandler = _ref2.clickHandler;
-
-    return React.createElement(
-      'div',
-      null,
-      React.createElement(GameTitle, { appliedClass: 'gameTitle' }),
-      React.createElement(StartButton, { clickHandler: clickHandler })
     );
   };
 

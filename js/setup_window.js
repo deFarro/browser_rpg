@@ -9,60 +9,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 define(['react'], function (React) {
-  var GameTitle = function (_React$Component) {
-    _inherits(GameTitle, _React$Component);
-
-    function GameTitle(props) {
-      _classCallCheck(this, GameTitle);
-
-      var _this = _possibleConstructorReturn(this, (GameTitle.__proto__ || Object.getPrototypeOf(GameTitle)).call(this));
-
-      _this.state = {
-        animate: props["data-animate"],
-        className: props.appliedClass
-      };
-      return _this;
-    }
-
-    _createClass(GameTitle, [{
-      key: 'componentDidMount',
-      value: function componentDidMount() {
-        var _this2 = this;
-
-        if (this.state.animate) {
-          setTimeout(function () {
-            _this2.setState({ className: 'clickedTitle' });
-          }, 0);
-        }
-      }
-    }, {
-      key: 'render',
-      value: function render() {
-        return React.createElement(
-          'div',
-          { className: 'title-wrapper' },
-          React.createElement(
-            'h1',
-            { className: this.state.className },
-            'Future In The Past'
-          )
-        );
-      }
-    }]);
-
-    return GameTitle;
-  }(React.Component);
-
-  var SetupWindow = function (_React$Component2) {
-    _inherits(SetupWindow, _React$Component2);
+  var SetupWindow = function (_React$Component) {
+    _inherits(SetupWindow, _React$Component);
 
     function SetupWindow(props) {
       _classCallCheck(this, SetupWindow);
 
-      var _this3 = _possibleConstructorReturn(this, (SetupWindow.__proto__ || Object.getPrototypeOf(SetupWindow)).call(this));
+      var _this = _possibleConstructorReturn(this, (SetupWindow.__proto__ || Object.getPrototypeOf(SetupWindow)).call(this));
 
-      _this3.switchToGame = props.doNext;
-      _this3.state = {
+      _this.switchToGame = props.doNext;
+      _this.state = {
         statsRemain: 10,
         name: '',
         stats: [0, 0, 0, 0],
@@ -70,18 +26,18 @@ define(['react'], function (React) {
         className: 'startButton',
         showTip: false
       };
-      return _this3;
+      return _this;
     }
 
     _createClass(SetupWindow, [{
       key: 'componentDidMount',
       value: function componentDidMount() {
-        var _this4 = this;
+        var _this2 = this;
 
         setTimeout(function () {
-          _this4.setState({ className: 'setupScreen' });
+          _this2.setState({ className: 'setupScreen' });
           // Add and remove 'hidden' to avoid overflow blinking
-          _this4.formEl.classList.remove('hidden');
+          _this2.formEl.classList.remove('hidden');
         }, 0);
       }
     }, {
@@ -97,8 +53,6 @@ define(['react'], function (React) {
           return;
         }
       }
-      //chooseGender(event) {}
-
     }, {
       key: 'plus',
       value: function plus(index) {
@@ -145,10 +99,10 @@ define(['react'], function (React) {
     }, {
       key: 'render',
       value: function render() {
-        var _this5 = this;
+        var _this3 = this;
 
         var fieldSet = this.state.statNames.map(function (stat, i) {
-          return React.createElement(StatField, { key: i, title: stat, plus: _this5.plus.bind(_this5, i), minus: _this5.minus.bind(_this5, i), value: _this5.state.stats[i] });
+          return React.createElement(StatField, { key: i, title: stat, plus: _this3.plus.bind(_this3, i), minus: _this3.minus.bind(_this3, i), value: _this3.state.stats[i] });
         });
 
         return React.createElement(
@@ -162,7 +116,7 @@ define(['react'], function (React) {
           React.createElement(
             'form',
             { ref: function ref(element) {
-                return _this5.formEl = element;
+                return _this3.formEl = element;
               }, className: 'hidden' },
             React.createElement(NameField, { onChange: this.enterName.bind(this), value: this.state.name, showTip: this.state.showTip }),
             fieldSet,
@@ -174,7 +128,7 @@ define(['react'], function (React) {
             )
           ),
           React.createElement(CreateCharButton, { onClick: this.handleSubmit.bind(this), controlView: function controlView(element) {
-              return _this5.createButton = element;
+              return _this3.createButton = element;
             } })
         );
       }
@@ -246,24 +200,11 @@ define(['react'], function (React) {
     );
   };
 
-  var SetupScreen = function SetupScreen(_ref3) {
-    var switchToGame = _ref3.switchToGame;
-
-    return React.createElement(
-      'div',
-      null,
-      React.createElement(GameTitle, { appliedClass: 'gameTitle', 'data-animate': true }),
-      React.createElement(SetupWindow, { doNext: switchToGame })
-    );
-  };
-
   var setupWindow = {
-    GameTitle: GameTitle,
     SetupWindow: SetupWindow,
     NameField: NameField,
     StatField: StatField,
-    CreateCharButton: CreateCharButton,
-    SetupScreen: SetupScreen
+    CreateCharButton: CreateCharButton
   };
 
   return setupWindow;

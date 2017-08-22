@@ -1,27 +1,5 @@
 define(['react'], function (React) {
 
-  class GameTitle extends React.Component {
-    constructor(props) {
-      super();
-      this.state = {
-        animate: props["data-animate"],
-        className: props.appliedClass
-      }
-    }
-    componentDidMount() {
-      if (this.state.animate) {
-        setTimeout(() => {this.setState({className: 'clickedTitle'})}, 0);
-      }
-    }
-    render() {
-      return (
-        <div className="title-wrapper">
-          <h1 className={this.state.className}>Future In The Past</h1>
-        </div>
-      )
-    }
-  }
-
   class SetupWindow extends React.Component {
     constructor(props) {
       super();
@@ -54,7 +32,6 @@ define(['react'], function (React) {
         return;
       }
     }
-    //chooseGender(event) {}
     plus(index) {
       if(this.state.statsRemain === 0) {
         return;
@@ -131,22 +108,11 @@ define(['react'], function (React) {
     return <button className="create-char-button hidden" ref={controlView} onClick={onClick}>Create character</button>
   }
 
-  const SetupScreen = ({switchToGame}) => {
-    return (
-      <div>
-        <GameTitle appliedClass="gameTitle" data-animate />
-        <SetupWindow doNext={switchToGame}/>
-      </div>
-    )
-  }
-
   const setupWindow = {
-    GameTitle,
     SetupWindow,
     NameField,
     StatField,
-    CreateCharButton,
-    SetupScreen
+    CreateCharButton
   }
 
   return setupWindow;

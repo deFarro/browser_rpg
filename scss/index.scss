@@ -17,7 +17,7 @@ body {
 .gameTitle {
   @include text-styling(5em);
   @include outline();
-  padding: 30vh 0 0 30vh;
+  padding: 30vh 0 0 calc(50% - 435px);
   margin: 0 0 30px 0;
   font-weight: 900;
   color: white;

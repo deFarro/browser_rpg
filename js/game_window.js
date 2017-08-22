@@ -8,10 +8,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-define(['react', 'setup_window', 'game_window_fight', 'game_window_container', 'game_window_npc', 'game'], function (React, setupWindow, fight, container, npc) {
-
-  var GameTitle = setupWindow.GameTitle;
-
+define(['react', 'game_window_fight', 'game_window_container', 'game_window_npc', 'game'], function (React, fight, container, npc) {
   var FaceEnemy = fight.FaceEnemy,
       Escaped = fight.Escaped,
       BattleOver = fight.BattleOver,
@@ -460,17 +457,6 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
     );
   };
 
-  var GameScreen = function GameScreen(_ref6) {
-    var character = _ref6.character;
-
-    return React.createElement(
-      'div',
-      { className: 'fullscreen' },
-      React.createElement(GameTitle, { appliedClass: 'clickedTitle' }),
-      React.createElement(GameWindow, { player: character })
-    );
-  };
-
   var GameOver = function GameOver() {
     var reload = function reload() {
       window.location.reload();
@@ -503,6 +489,16 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
         { className: 'btn', onClick: reload },
         'Back to title screen'
       )
+    );
+  };
+
+  var GameScreen = function GameScreen(_ref6) {
+    var character = _ref6.character;
+
+    return React.createElement(
+      'div',
+      { className: 'fullscreen' },
+      React.createElement(GameWindow, { player: character })
     );
   };
 

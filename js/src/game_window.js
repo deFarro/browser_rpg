@@ -1,6 +1,4 @@
-define(['react', 'setup_window', 'game_window_fight', 'game_window_container', 'game_window_npc', 'game'], function (React, setupWindow, fight, container, npc) {
-
-  const GameTitle = setupWindow.GameTitle;
+define(['react', 'game_window_fight', 'game_window_container', 'game_window_npc', 'game'], function (React, fight, container, npc) {
 
   const {
     FaceEnemy,
@@ -254,15 +252,6 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
     )
   }
 
-  const GameScreen = ({character}) => {
-    return (
-      <div className="fullscreen">
-        <GameTitle appliedClass="clickedTitle" />
-        <GameWindow player={character} />
-      </div>
-    )
-  }
-
   const GameOver = () => {
     const reload = () => {
       window.location.reload();
@@ -274,6 +263,14 @@ define(['react', 'setup_window', 'game_window_fight', 'game_window_container', '
         <h5>Things will get much more interesting when you are able to play with friends.</h5>
         <h5>Multiplayer is coming soon (or not so soon).</h5>
         <button className="btn" onClick={reload}>Back to title screen</button>
+      </div>
+    )
+  }
+
+  const GameScreen = ({character}) => {
+    return (
+      <div className="fullscreen">
+        <GameWindow player={character} />
       </div>
     )
   }
