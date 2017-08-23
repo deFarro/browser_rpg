@@ -4,11 +4,13 @@ requirejs.config({
   baseUlr: 'js/',
   paths: {
     react: 'lib/react',
-    react_dom: 'lib/react-dom'
+    react_dom: 'lib/react-dom',
+    redux: 'lib/redux',
+    react_redux: 'lib/react-redux'
   }
 });
 
-requirejs(['react', 'react_dom', 'setup_window', 'game_window', 'game'], function(React, ReactDOM, setupWindow, gameWindow) {
+requirejs(['react', 'react_dom', 'redux', 'react_redux', './reducers/setup_reducer', 'setup_window', 'game_window', 'game'], function(React, ReactDOM, Redux, ReactRedux, setup, setupWindow, gameWindow) {
 
 const {
     SetupWindow,
@@ -37,6 +39,12 @@ const {
     GameScreen
   } = gameWindow;
 
+  const {createStore} = Redux;
+
+  const {Provider} = ReactRedux;
+
+  const store = createStore(setup, window.devToolsExtension && window.devToolsExtension());
+
   class MainWindow extends React.Component {
     constructor() {
       super();
@@ -59,7 +67,11 @@ const {
         currentScreen = <StartButton clickHandler={this.switchToSetup.bind(this)}/>;
       }
       else if (this.state.visible === 'setupScreen') {
-        currentScreen = <SetupWindow doNext={this.switchToGameScreen.bind(this)}/>;
+        currentScreen = (
+          <Provider store={store}>
+            <SetupWindow doNext={this.switchToGameScreen.bind(this)}/>
+          </Provider>
+        );
       }
       else if (this.state.visible === 'gameScreen') {
         currentScreen = <GameScreen character={this.state.character} />;

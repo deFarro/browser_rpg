@@ -21,9 +21,11 @@ Game is limited to 20 levels.
 * JavaScript ES6
 * Babel
 * React
+* Redux
 * RequireJS
 * Mocha + Chai
 
 ---
 
 Decided not to use React router to keep address line clean and static and provide a standalone app experience.
+Redux is used for managing state on character setup stage.

@@ -15,16 +15,28 @@ define(['react', 'redux', 'react_redux', './actions/setup_actions'], function (R
       enterName = actions.enterName,
       raiseStat = actions.raiseStat,
       reduceStat = actions.reduceStat,
+      showTip = actions.showTip,
+      hideTip = actions.hideTip,
       showSubmit = actions.showSubmit,
       hideSubmit = actions.hideSubmit;
 
   var SetupWindow = function (_React$Component) {
     _inherits(SetupWindow, _React$Component);
 
-    function SetupWindow() {
+    function SetupWindow(props) {
       _classCallCheck(this, SetupWindow);
 
-      return _possibleConstructorReturn(this, (SetupWindow.__proto__ || Object.getPrototypeOf(SetupWindow)).apply(this, arguments));
+      var _this = _possibleConstructorReturn(this, (SetupWindow.__proto__ || Object.getPrototypeOf(SetupWindow)).call(this, props));
+
+      _this.switchToGame = props.doNext;
+      _this.state = {
+        statsRemain: 10,
+        name: '',
+        stats: [0, 0, 0, 0],
+        statNames: ['strength', 'dexterity', 'intellect', 'luck'],
+        showTip: false
+      };
+      return _this;
     }
 
     _createClass(SetupWindow, [{
@@ -33,19 +45,56 @@ define(['react', 'redux', 'react_redux', './actions/setup_actions'], function (R
         var _this2 = this;
 
         setTimeout(function () {
-          // Set and change class to run animation
           _this2.props.dispatch(showWindow());
           // Add and remove 'hidden' to avoid overflow blinking
           _this2.formEl.classList.remove('hidden');
         }, 0);
       }
     }, {
-      key: 'componentDidUpdate',
-      value: function componentDidUpdate() {
-        // Check if name and stat input finished
-        if (this.props.statsRemain === 0 && this.props.name) {
-          this.props.dispatch(showSubmit());
+      key: 'enterName',
+      value: function enterName(event) {
+        var cName = event.target.value;
+        // Only numbers, spaces, underscores and english letters are eligible
+        if (/^[\w ]{0,20}$/.test(cName)) {
+          this.setState({ showTip: false });
+          this.setState({ name: cName });
         } else {
+          this.setState({ showTip: true });
+          return;
+        }
+      }
+    }, {
+      key: 'plus',
+      value: function plus(index) {
+        if (this.state.statsRemain === 0) {
+          return;
+        }
+        var statList = this.state.stats;
+        statList[index]++;
+        this.setState({ statsRemain: this.state.statsRemain - 1, stats: statList });
+      }
+    }, {
+      key: 'minus',
+      value: function minus(index) {
+        if (this.state.stats[index] === 0) {
+          return;
+        }
+        var statList = this.state.stats;
+        statList[index]--;
+        this.setState({ statsRemain: this.state.statsRemain + 1, stats: statList });
+      }
+    }, {
+      key: 'checkIfReady',
+      value: function checkIfReady() {
+        if (this.state.statsRemain === 0 && this.state.name) {
+          //console.log(this.props.showSubmit);
+          // this.createButton.disabled = false;
+          // this.createButton.classList.remove('hidden');
+          this.props.dispatch(showSubmit());
+          //console.log(this.props.showSubmit);
+        } else {
+          // this.createButton.disabled = true;
+          // this.createButton.classList.add('hidden');
           this.props.dispatch(hideSubmit());
         }
       }
@@ -53,8 +102,13 @@ define(['react', 'redux', 'react_redux', './actions/setup_actions'], function (R
       key: 'handleSubmit',
       value: function handleSubmit(event) {
         event.preventDefault();
-        var character = { 'name': this.props.name, 'stats': this.props.stats };
-        this.props.doNext(character);
+        var character = { 'name': this.state.name, 'stats': this.state.stats };
+        this.switchToGame(character);
+      }
+    }, {
+      key: 'componentDidUpdate',
+      value: function componentDidUpdate() {
+        this.checkIfReady();
       }
     }, {
       key: 'render',
@@ -63,7 +117,6 @@ define(['react', 'redux', 'react_redux', './actions/setup_actions'], function (R
 
         var dispatch = this.props.dispatch;
 
-        var changeName = bindActionCreators(enterName, dispatch);
         var plus = bindActionCreators(raiseStat, dispatch);
         var minus = bindActionCreators(reduceStat, dispatch);
 
@@ -84,16 +137,18 @@ define(['react', 'redux', 'react_redux', './actions/setup_actions'], function (R
             { ref: function ref(element) {
                 return _this3.formEl = element;
               }, className: 'hidden' },
-            React.createElement(NameField, { changeName: changeName, value: this.props.name }),
+            React.createElement(NameField, { onChange: this.enterName.bind(this), value: this.state.name, showTip: this.state.showTip }),
             fieldSet,
             React.createElement(
               'p',
               { className: 'remain-stats' },
               'STATS REMAIN: ',
-              this.props.statsRemain
+              this.state.statsRemain
             )
           ),
-          React.createElement(CreateCharButton, { onClick: this.handleSubmit.bind(this), show: this.props.showSubmit })
+          React.createElement(CreateCharButton, { onClick: this.handleSubmit.bind(this), controlView: function controlView(element) {
+              return _this3.createButton = element;
+            }, show: this.props.showSubmit })
         );
       }
     }]);
@@ -101,51 +156,22 @@ define(['react', 'redux', 'react_redux', './actions/setup_actions'], function (R
     return SetupWindow;
   }(React.Component);
 
-  var NameField = function (_React$Component2) {
-    _inherits(NameField, _React$Component2);
+  var NameField = function NameField(_ref) {
+    var onChange = _ref.onChange,
+        value = _ref.value,
+        showTip = _ref.showTip;
 
-    function NameField(props) {
-      _classCallCheck(this, NameField);
-
-      var _this4 = _possibleConstructorReturn(this, (NameField.__proto__ || Object.getPrototypeOf(NameField)).call(this));
-
-      _this4.props = props;
-      _this4.state = {
-        showTip: false
-      };
-      return _this4;
-    }
-
-    _createClass(NameField, [{
-      key: 'updateName',
-      value: function updateName(event) {
-        var cName = event.target.value;
-        // Only numbers, spaces, underscores and english letters are eligible
-        if (/^[\w ]{0,20}$/.test(cName)) {
-          this.props.changeName(cName);
-          this.setState({ showTip: false });
-        } else {
-          this.setState({ showTip: true });
-        }
-      }
-    }, {
-      key: 'render',
-      value: function render() {
-        return React.createElement(
-          'div',
-          { className: 'name-input-block' },
-          React.createElement('input', { className: 'name-field', type: 'text', placeholder: 'Name', onChange: this.updateName.bind(this), value: this.props.value }),
-          this.state.showTip ? React.createElement(
-            'p',
-            { className: 'tip' },
-            '* english letters and numbers only'
-          ) : null
-        );
-      }
-    }]);
-
-    return NameField;
-  }(React.Component);
+    return React.createElement(
+      'div',
+      { className: 'name-input-block' },
+      React.createElement('input', { className: 'name-field', type: 'text', placeholder: 'Name', onChange: onChange, value: value }),
+      showTip ? React.createElement(
+        'p',
+        { className: 'tip' },
+        '* english letters and numbers only'
+      ) : null
+    );
+  };
 
   var StatField = function StatField(props) {
     var title = props.title,
@@ -186,31 +212,34 @@ define(['react', 'redux', 'react_redux', './actions/setup_actions'], function (R
     );
   };
 
-  var CreateCharButton = function CreateCharButton(_ref) {
-    var onClick = _ref.onClick,
-        show = _ref.show;
+  var CreateCharButton = function CreateCharButton(_ref2) {
+    var onClick = _ref2.onClick,
+        controlView = _ref2.controlView,
+        show = _ref2.show;
 
     if (show) {
       return React.createElement(
         'button',
-        { className: 'create-char-button', onClick: onClick },
+        { className: 'create-char-button', ref: controlView, onClick: onClick },
         'Create character'
       );
     }
     return React.createElement(
       'button',
-      { className: 'create-char-button hidden', disabled: true, onClick: onClick },
+      { className: 'create-char-button hidden', disabled: true, ref: controlView, onClick: onClick },
       'Create character'
     );
   };
 
   var mapStateToProps = function mapStateToProps(state) {
+    console.log(state);
     return {
       statsRemain: state.statsRemain,
       name: state.name,
       stats: state.stats,
       statNames: state.statNames,
       className: state.className,
+      showTip: state.showTip,
       showSubmit: state.showSubmit
     };
   };
