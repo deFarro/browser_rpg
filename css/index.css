@@ -1,5 +1,6 @@
 * {
-  box-sizing: border-box; }
+  box-sizing: border-box;
+  font-weight: 400; }
 
 body {
   font-family: Andale Mono;
@@ -14,7 +15,6 @@ body {
   text-shadow: 2px 0 0 black, 0 2px 0 black, -2px 0 0 black, 0 -2px 0 black;
   padding: 30vh 0 0 calc(50% - 435px);
   margin: 0 0 30px 0;
-  font-weight: 900;
   color: white; }
 
 .clickedTitle {
@@ -94,7 +94,9 @@ body {
     width: 40px;
     text-align: center;
     padding: 0;
-    border: none; }
+    border: none;
+    color: black;
+    background-color: white; }
   .stat-field i {
     font-size: 0.8em;
     font-family: Andale Mono, sans-serif;

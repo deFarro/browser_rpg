@@ -11,10 +11,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 requirejs.config({
   baseUlr: 'js/',
   paths: {
-    react: 'lib/react',
-    react_dom: 'lib/react-dom',
-    redux: 'lib/redux',
-    react_redux: 'lib/react-redux'
+    react: '../node_modules/react/dist/react.min',
+    react_dom: '../node_modules/react-dom/dist/react-dom.min',
+    redux: '../node_modules/redux/dist/redux.min',
+    react_redux: '../node_modules/react-redux/dist/react-redux.min'
   }
 });
 

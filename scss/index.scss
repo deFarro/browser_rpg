@@ -2,6 +2,7 @@
 
 * {
   box-sizing: border-box;
+  font-weight: 400;
 }
 
 body {
@@ -19,7 +20,6 @@ body {
   @include outline();
   padding: 30vh 0 0 calc(50% - 435px);
   margin: 0 0 30px 0;
-  font-weight: 900;
   color: white;
 }
 
@@ -105,6 +105,8 @@ body {
     text-align: center;
     padding: 0;
     border: none;
+    color: black;
+    background-color: white;
   }
   i {
     @include text-styling(0.8em);

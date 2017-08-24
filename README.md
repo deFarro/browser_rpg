@@ -19,9 +19,9 @@ Game is limited to 20 levels.
 * CSS3
 * SASS
 * JavaScript ES6
-* Babel
 * React
 * Redux
+* Babel
 * RequireJS
 * Mocha + Chai
 
